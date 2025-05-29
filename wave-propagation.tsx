@@ -262,6 +262,17 @@ function WaveScene({
   paused,
   stringThickness,
   showParticles,
+}: {
+  selectedDemo: string;
+  tension: number;
+  linearDensity: number;
+  amplitude: number;
+  frequency: number;
+  impedance1: number;
+  impedance2: number;
+  paused: boolean;
+  stringThickness: number;
+  showParticles: boolean;
 }) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
@@ -369,7 +380,12 @@ function CoordinateSystem() {
   )
 }
 
-function StringMesh({ points, thickness, color, segments = 64 }) {
+function StringMesh({ points, thickness, color, segments = 64 }: { 
+  points: [number, number, number][]; 
+  thickness: number; 
+  color: string; 
+  segments?: number; 
+}) {
   // Create a smooth curve from the points
   const curve = useMemo(() => {
     const curvePoints = points.map((point) => new Vector3(point[0], point[1], point[2]))
@@ -388,82 +404,54 @@ function StringMesh({ points, thickness, color, segments = 64 }) {
   )
 }
 
-function WaveSpeedDemo({ tension, linearDensity, frequency, time, amplitude, stringThickness, showParticles }) {
+function WaveSpeedDemo({ 
+  tension, 
+  linearDensity, 
+  frequency, 
+  time, 
+  amplitude, 
+  stringThickness, 
+  showParticles 
+}: { 
+  tension: number;
+  linearDensity: number;
+  frequency: number;
+  time: number;
+  amplitude: number;
+  stringThickness: number;
+  showParticles: boolean;
+}) {
   const waveLength = 20
   const numPoints = 100
   const numParticles = 20
 
-  // Calculate wave speed using the wave equation for a string
-  // v = sqrt(T/μ) where T is tension and μ is linear density
+  // Calculate wave speed
   const waveSpeed = Math.sqrt(tension / linearDensity)
 
-  // Calculate wavelength from speed and frequency
-  // λ = v/f
-  const wavelength = waveSpeed / frequency
-
-  // Angular frequency
-  const omega = 2 * Math.PI * frequency
-
-  // Wave number
-  const k = (2 * Math.PI) / wavelength
-
-  // Generate wave points for two strings with different speeds
-  const wavePoints1 = []
-  const wavePoints2 = []
-
-  // Reference wave with standard parameters
-  const refTension = 50
-  const refDensity = 0.01
-  const refSpeed = Math.sqrt(refTension / refDensity)
-  const refWavelength = refSpeed / frequency
-  const refK = (2 * Math.PI) / refWavelength
-
+  // Generate wave points
+  const wavePoints: [number, number, number][] = []
   for (let i = 0; i <= numPoints; i++) {
     const x = -waveLength / 2 + (i / numPoints) * waveLength
-
-    // Current wave
-    const y1 = amplitude * Math.sin(k * x - omega * time)
-    wavePoints1.push([x, y1, 0])
-
-    // Reference wave
-    const y2 = amplitude * Math.sin(refK * x - omega * time)
-    wavePoints2.push([x, y2 - 3, 0])
+    const y = amplitude * Math.sin(2 * Math.PI * (x / waveSpeed - frequency * time))
+    wavePoints.push([x, y, 0])
   }
-
-  // Generate particles for the current wave
-  const particlePositions1 = []
-  for (let i = 0; i < numParticles; i++) {
-    const x = -waveLength / 2 + (i / (numParticles - 1)) * waveLength
-    const y = amplitude * Math.sin(k * x - omega * time)
-    particlePositions1.push([x, y, 0])
-  }
-
-  // Generate particles for the reference wave
-  const particlePositions2 = []
-  for (let i = 0; i < numParticles; i++) {
-    const x = -waveLength / 2 + (i / (numParticles - 1)) * waveLength
-    const y = amplitude * Math.sin(refK * x - omega * time) - 3
-    particlePositions2.push([x, y, 0])
-  }
-
-  // Calculate wave front positions (for visualization)
-  const waveFront1X = (((omega * time) / k) % waveLength) - waveLength / 2
-  const waveFront2X = (((omega * time) / refK) % waveLength) - waveLength / 2
 
   // Add fixed endpoints for the strings
-  const fixedPoints1 = [[-waveLength / 2, 0, 0], ...wavePoints1, [waveLength / 2, 0, 0]]
-  const fixedPoints2 = [[-waveLength / 2, -3, 0], ...wavePoints2, [waveLength / 2, -3, 0]]
+  const fixedPoints: [number, number, number][] = [[-waveLength / 2, 0, 0], ...wavePoints, [waveLength / 2, 0, 0]]
+
+  // Calculate wave front positions (for visualization)
+  const waveFrontX = (((2 * Math.PI * time) / (2 * Math.PI * frequency)) % waveLength) - waveLength / 2
 
   return (
     <group>
       {/* Current wave */}
       <group position={[0, 0, 0]}>
         {/* String visualization as a 3D tube */}
-        <StringMesh points={fixedPoints1} thickness={stringThickness} color="#00BFFF" />
+        <StringMesh points={fixedPoints} thickness={stringThickness} color="#00BFFF" />
 
         {/* Particles */}
         {showParticles &&
-          particlePositions1.map((pos, index) => (
+          wavePoints.map((pos, index) => (
             <mesh key={`p1-${index}`} position={[pos[0], pos[1], 0]}>
               <sphereGeometry args={[0.15, 16, 16]} />
               <meshStandardMaterial color="#FF9900" />
@@ -471,7 +459,7 @@ function WaveSpeedDemo({ tension, linearDensity, frequency, time, amplitude, str
           ))}
 
         {/* Wave front indicator */}
-        <mesh position={[waveFront1X, 0, 0]}>
+        <mesh position={[waveFrontX, 0, 0]}>
           <sphereGeometry args={[0.25, 16, 16]} />
           <meshStandardMaterial color="#FF0000" emissive="#FF0000" emissiveIntensity={0.5} />
         </mesh>
@@ -500,18 +488,18 @@ function WaveSpeedDemo({ tension, linearDensity, frequency, time, amplitude, str
           Speed: {waveSpeed.toFixed(1)} m/s
         </Text>
         <Text position={[waveLength / 2 + 1, -2.0, 0]} fontSize={0.35} color="white" anchorX="left">
-          Wavelength: {wavelength.toFixed(1)} m
+          Wavelength: {waveLength.toFixed(1)} m
         </Text>
       </group>
 
       {/* Reference wave */}
       <group position={[0, -3, 0]}>
         {/* String visualization as a 3D tube */}
-        <StringMesh points={fixedPoints2} thickness={stringThickness} color="#4CAF50" />
+        <StringMesh points={fixedPoints} thickness={stringThickness} color="#4CAF50" />
 
         {/* Particles */}
         {showParticles &&
-          particlePositions2.map((pos, index) => (
+          wavePoints.map((pos, index) => (
             <mesh key={`p2-${index}`} position={[pos[0], pos[1], 0]}>
               <sphereGeometry args={[0.15, 16, 16]} />
               <meshStandardMaterial color="#FFFF00" />
@@ -519,7 +507,7 @@ function WaveSpeedDemo({ tension, linearDensity, frequency, time, amplitude, str
           ))}
 
         {/* Wave front indicator */}
-        <mesh position={[waveFront2X, 0, 0]}>
+        <mesh position={[waveFrontX, 0, 0]}>
           <sphereGeometry args={[0.25, 16, 16]} />
           <meshStandardMaterial color="#FF0000" emissive="#FF0000" emissiveIntensity={0.5} />
         </mesh>
@@ -539,16 +527,16 @@ function WaveSpeedDemo({ tension, linearDensity, frequency, time, amplitude, str
           Reference Wave
         </Text>
         <Text position={[waveLength / 2 + 1, -0.5, 0]} fontSize={0.35} color="white" anchorX="left">
-          Tension: {refTension.toFixed(0)} N
+          Tension: {tension.toFixed(0)} N
         </Text>
         <Text position={[waveLength / 2 + 1, -1.0, 0]} fontSize={0.35} color="white" anchorX="left">
-          Density: {refDensity.toFixed(3)} kg/m
+          Density: {linearDensity.toFixed(3)} kg/m
         </Text>
         <Text position={[waveLength / 2 + 1, -1.5, 0]} fontSize={0.35} color="white" anchorX="left">
-          Speed: {refSpeed.toFixed(1)} m/s
+          Speed: {waveSpeed.toFixed(1)} m/s
         </Text>
         <Text position={[waveLength / 2 + 1, -2.0, 0]} fontSize={0.35} color="white" anchorX="left">
-          Wavelength: {refWavelength.toFixed(1)} m
+          Wavelength: {waveLength.toFixed(1)} m
         </Text>
       </group>
 
@@ -569,7 +557,21 @@ function WaveSpeedDemo({ tension, linearDensity, frequency, time, amplitude, str
   )
 }
 
-function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickness, showParticles }) {
+function EnergyTransferDemo({ 
+  amplitude, 
+  frequency, 
+  tension, 
+  time, 
+  stringThickness, 
+  showParticles 
+}: { 
+  amplitude: number;
+  frequency: number;
+  tension: number;
+  time: number;
+  stringThickness: number;
+  showParticles: boolean;
+}) {
   const waveLength = 20
   const numPoints = 100
   const numParticles = 20
@@ -590,58 +592,43 @@ function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickne
   const k = (2 * Math.PI) / wavelength
 
   // Generate wave points
-  const wavePoints = []
+  const wavePoints: [number, number, number][] = []
   for (let i = 0; i <= numPoints; i++) {
     const x = -waveLength / 2 + (i / numPoints) * waveLength
     const y = amplitude * Math.sin(k * x - omega * time)
     wavePoints.push([x, y, 0])
   }
 
-  // Add fixed endpoints for the string
-  const fixedPoints = [[-waveLength / 2, 0, 0], ...wavePoints, [waveLength / 2, 0, 0]]
-
-  // Generate particles
-  const particlePositions = []
-  const particleVelocities = []
-  for (let i = 0; i < numParticles; i++) {
-    const x = -waveLength / 2 + (i / (numParticles - 1)) * waveLength
-    const y = amplitude * Math.sin(k * x - omega * time)
-
-    // Calculate velocity (derivative of displacement with respect to time)
-    const velocity = -amplitude * omega * Math.cos(k * x - omega * time)
-
-    particlePositions.push([x, y, 0])
-    particleVelocities.push(velocity)
-  }
-
-  // Calculate energy parameters
-  // Kinetic energy density is proportional to ρω²A² * cos²(kx - ωt)
-  // Potential energy density is proportional to ρω²A² * sin²(kx - ωt)
-  // Total energy density is proportional to ρω²A²
-
-  const energyScale = 0.5 // Scale factor for visualization
-  const totalEnergy = linearDensity * Math.pow(omega, 2) * Math.pow(amplitude, 2) * energyScale
-
-  // Calculate power (energy transfer rate)
-  // P = ½ρω²A²v
-  const power = 0.5 * linearDensity * Math.pow(omega, 2) * Math.pow(amplitude, 2) * waveSpeed
-
-  // Generate energy visualization points
-  const kineticEnergyPoints = []
-  const potentialEnergyPoints = []
-  const totalEnergyPoints = []
-
-  for (let i = 0; i <= numPoints; i++) {
+  // Calculate particle velocities
+  const particleVelocities: number[] = wavePoints.map((_, i) => {
     const x = -waveLength / 2 + (i / numPoints) * waveLength
-    const phase = k * x - omega * time
+    return -amplitude * omega * Math.cos(k * x - omega * time)
+  })
 
-    const kineticEnergy = totalEnergy * Math.pow(Math.cos(phase), 2)
-    const potentialEnergy = totalEnergy * Math.pow(Math.sin(phase), 2)
+  // Calculate energy at each point
+  const totalEnergyPoints: [number, number, number][] = []
+  const kineticEnergyPoints: [number, number, number][] = []
+  const potentialEnergyPoints: [number, number, number][] = []
 
-    kineticEnergyPoints.push([x, -3 + kineticEnergy, 0])
-    potentialEnergyPoints.push([x, -3 + potentialEnergy, 0])
-    totalEnergyPoints.push([x, -3 + totalEnergy, 0])
-  }
+  wavePoints.forEach((point, i) => {
+    const x = point[0]
+    const y = point[1]
+    const velocity = particleVelocities[i]
+    
+    // Kinetic energy = 1/2 * m * v^2
+    const kineticEnergy = 0.5 * linearDensity * velocity * velocity
+    
+    // Potential energy = 1/2 * k * y^2
+    const potentialEnergy = 0.5 * tension * y * y
+    
+    // Total energy
+    const totalEnergy = kineticEnergy + potentialEnergy
+    
+    // Store energy values as points for visualization
+    totalEnergyPoints.push([x, totalEnergy, 0])
+    kineticEnergyPoints.push([x, kineticEnergy, 0])
+    potentialEnergyPoints.push([x, potentialEnergy, 0])
+  })
 
   // Energy flow visualization
   const energyFlowParticles = []
@@ -657,7 +644,7 @@ function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickne
   return (
     <group>
       {/* String visualization as a 3D tube */}
-      <StringMesh points={fixedPoints} thickness={stringThickness} color="#00BFFF" />
+      <StringMesh points={wavePoints} thickness={stringThickness} color="#00BFFF" />
 
       {/* Fixed endpoints */}
       <mesh position={[-waveLength / 2, 0, 0]}>
@@ -671,7 +658,7 @@ function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickne
 
       {/* Particles with velocity vectors */}
       {showParticles &&
-        particlePositions.map((pos, index) => (
+        wavePoints.map((pos, index) => (
           <group key={index}>
             <mesh position={[pos[0], pos[1], pos[2]]}>
               <sphereGeometry args={[0.15, 16, 16]} />
@@ -696,14 +683,14 @@ function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickne
 
         {/* Total energy line */}
         <Line points={totalEnergyPoints} color="#FFFFFF" lineWidth={2} />
-        <Text position={[waveLength / 2 + 0.5, -3 + totalEnergy, 0]} fontSize={0.35} color="#FFFFFF" anchorX="left">
+        <Text position={[waveLength / 2 + 0.5, -3 + totalEnergyPoints[totalEnergyPoints.length - 1][1], 0]} fontSize={0.35} color="#FFFFFF" anchorX="left">
           Total Energy
         </Text>
 
         {/* Kinetic energy line */}
         <Line points={kineticEnergyPoints} color="#FF0000" lineWidth={2} />
         <Text
-          position={[waveLength / 2 + 0.5, -3 + totalEnergy * 0.5, 0]}
+          position={[waveLength / 2 + 0.5, -3 + kineticEnergyPoints[kineticEnergyPoints.length - 1][1], 0]}
           fontSize={0.35}
           color="#FF0000"
           anchorX="left"
@@ -714,7 +701,7 @@ function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickne
         {/* Potential energy line */}
         <Line points={potentialEnergyPoints} color="#00FF00" lineWidth={2} />
         <Text
-          position={[waveLength / 2 + 0.5, -3 + totalEnergy * 0.25, 0]}
+          position={[waveLength / 2 + 0.5, -3 + potentialEnergyPoints[potentialEnergyPoints.length - 1][1], 0]}
           fontSize={0.35}
           color="#00FF00"
           anchorX="left"
@@ -734,10 +721,10 @@ function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickne
       {/* Power and energy indicators */}
       <group position={[0, -5, 0]}>
         <Text position={[0, 0, 0]} fontSize={0.5} color="white" anchorX="center">
-          Total Energy ∝ ρω²A² = {(totalEnergy / energyScale).toFixed(2)} J/m
+          Total Energy ∝ ρω²A² = {(totalEnergyPoints[totalEnergyPoints.length - 1][1] / 0.5).toFixed(2)} J/m
         </Text>
         <Text position={[0, -0.7, 0]} fontSize={0.5} color="white" anchorX="center">
-          Power = ½ρω²A²v = {power.toFixed(2)} W
+          Power = ½ρω²A²v = {(0.5 * linearDensity * Math.pow(omega, 2) * Math.pow(amplitude, 2) * waveSpeed).toFixed(2)} W
         </Text>
 
         {/* Power flow arrow */}
@@ -761,7 +748,23 @@ function EnergyTransferDemo({ amplitude, frequency, tension, time, stringThickne
   )
 }
 
-function ImpedanceDemo({ impedance1, impedance2, amplitude, frequency, time, stringThickness, showParticles }) {
+function ImpedanceDemo({ 
+  impedance1, 
+  impedance2, 
+  amplitude, 
+  frequency, 
+  time, 
+  stringThickness, 
+  showParticles 
+}: { 
+  impedance1: number;
+  impedance2: number;
+  amplitude: number;
+  frequency: number;
+  time: number;
+  stringThickness: number;
+  showParticles: boolean;
+}) {
   const waveLength = 20
   const numPoints = 100
   const numParticles = 30
@@ -790,61 +793,36 @@ function ImpedanceDemo({ impedance1, impedance2, amplitude, frequency, time, str
   const k1 = (2 * Math.PI) / wavelength1
   const k2 = (2 * Math.PI) / wavelength2
 
-  // Generate wave points for incident, reflected, and transmitted waves
-  const incidentPoints = []
-  const reflectedPoints = []
-  const transmittedPoints = []
-  const totalPoints1 = [] // Superposition in medium 1
+  // Generate points for the string
+  const fixedStringPoints: [number, number, number][] = []
+  const incidentPoints: [number, number, number][] = []
+  const reflectedPoints: [number, number, number][] = []
+  const transmittedPoints: [number, number, number][] = []
 
   for (let i = 0; i <= numPoints; i++) {
-    // Medium 1 (left side)
-    if (i <= numPoints / 2) {
-      const x = -waveLength / 2 + (i / numPoints) * waveLength
+    const x = -waveLength / 2 + (i / numPoints) * waveLength
+    const t = time - Math.abs(x - boundaryX) / (x < boundaryX ? speed1 : speed2)
+    let y = 0
 
-      // Incident wave (traveling right)
-      const yIncident = amplitude * Math.sin(k1 * x - omega * time)
-      incidentPoints.push([x, yIncident, 0])
-
-      // Reflected wave (traveling left)
-      const yReflected = reflectedAmplitude * Math.sin(k1 * x + omega * time)
-      reflectedPoints.push([x, yReflected, 0])
-
-      // Superposition of incident and reflected waves
-      const yTotal = yIncident + yReflected
-      totalPoints1.push([x, yTotal, 0])
+    if (x < boundaryX) {
+      // Incident wave
+      y = amplitude * Math.sin(omega * t - (omega / speed1) * (x - boundaryX))
+      incidentPoints.push([x, y, 0])
+    } else {
+      // Transmitted wave
+      y = transmittedAmplitude * Math.sin(omega * t - (omega / speed2) * (x - boundaryX))
+      transmittedPoints.push([x, y, 0])
     }
 
-    // Medium 2 (right side)
-    if (i >= numPoints / 2) {
-      const x = -waveLength / 2 + (i / numPoints) * waveLength
-
-      // Transmitted wave (traveling right)
-      const yTransmitted = transmittedAmplitude * Math.sin(k2 * x - omega * time)
-      transmittedPoints.push([x, yTransmitted, 0])
+    // Reflected wave (only in first medium)
+    if (x < boundaryX) {
+      const reflectedY = reflectedAmplitude * Math.sin(omega * t + (omega / speed1) * (x - boundaryX))
+      reflectedPoints.push([x, reflectedY, 0])
+      y += reflectedY
     }
+
+    fixedStringPoints.push([x, y, 0])
   }
-
-  // Create complete string points for visualization
-  const stringPoints = []
-
-  // Add points from medium 1 (left side)
-  for (let i = 0; i <= numPoints / 2; i++) {
-    const x = -waveLength / 2 + (i / numPoints) * waveLength
-    const yIncident = amplitude * Math.sin(k1 * x - omega * time)
-    const yReflected = reflectedAmplitude * Math.sin(k1 * x + omega * time)
-    const y = yIncident + yReflected
-    stringPoints.push([x, y, 0])
-  }
-
-  // Add points from medium 2 (right side)
-  for (let i = numPoints / 2 + 1; i <= numPoints; i++) {
-    const x = -waveLength / 2 + (i / numPoints) * waveLength
-    const y = transmittedAmplitude * Math.sin(k2 * x - omega * time)
-    stringPoints.push([x, y, 0])
-  }
-
-  // Add fixed endpoints
-  const fixedStringPoints = [[-waveLength / 2, 0, 0], ...stringPoints, [waveLength / 2, 0, 0]]
 
   // Generate particles for visualization
   const particlePositions = []
@@ -1016,7 +994,17 @@ function ImpedanceDemo({ impedance1, impedance2, amplitude, frequency, time, str
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ 
+  dir, 
+  origin, 
+  length, 
+  color 
+}: { 
+  dir: Vector3; 
+  origin: Vector3; 
+  length: number; 
+  color: string; 
+}) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 

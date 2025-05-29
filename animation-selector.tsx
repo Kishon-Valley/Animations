@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 
 export default function AnimationSelector() {
   const router = useRouter()
-  const [hoveredCard, setHoveredCard] = useState(null)
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
 
   const animations = [
     {
@@ -123,7 +123,7 @@ export default function AnimationSelector() {
     },
   ]
 
-  const navigateToAnimation = (id) => {
+  const navigateToAnimation = (id: string) => {
     router.push(`/${id}`)
   }
 

@@ -19,7 +19,7 @@ export default function WaveOpticsDiffraction() {
   const [showControls, setShowControls] = useState(true)
 
   // Convert wavelength to visible color
-  const wavelengthToColor = (wavelength) => {
+  const wavelengthToColor = (wavelength: number) => {
     // Simple conversion from wavelength to RGB
     let r, g, b
     if (wavelength >= 380 && wavelength < 440) {
@@ -249,6 +249,18 @@ function DiffractionScene({
   showIntensity,
   paused,
   lightColor,
+}: {
+  diffractionType: string;
+  wavelength: number;
+  slitWidth: number;
+  slitCount: number;
+  slitSpacing: number;
+  screenDistance: number;
+  showWavefronts: boolean;
+  showRays: boolean;
+  showIntensity: boolean;
+  paused: boolean;
+  lightColor: string;
 }) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
@@ -303,6 +315,15 @@ function SingleSlitDiffraction({
   showIntensity,
   time,
   lightColor,
+}: {
+  wavelength: number;
+  slitWidth: number;
+  screenDistance: number;
+  showWavefronts: boolean;
+  showRays: boolean;
+  showIntensity: boolean;
+  time: number;
+  lightColor: string;
 }) {
   // Constants for visualization
   const sourcePosition = -10
@@ -474,30 +495,23 @@ function SingleSlitDiffraction({
 
       {/* Wavefronts */}
       {wavefronts.map((points, index) => (
-        <Line key={`wavefront-${index}`} points={points} color={lightColor} lineWidth={1} opacity={0.5} />
+        <Line key={`wavefront-${index}`} points={points.map(p => [p[0], p[1], 0] as [number, number, number])} color={lightColor} lineWidth={1} opacity={0.5} />
       ))}
 
       {/* Light rays */}
       {showRays &&
-        samplePoints.map((point, index) => {
-          // Ray from source to slit
-          const raySourceToSlit = [
-            [sourcePosition, 0, 0],
-            [slitPosition, 0, 0],
-          ]
-
-          // Ray from slit to screen
-          const raySlitToScreen = [
-            [slitPosition, 0, 0],
-            [screenPositionX, point.y, 0],
-          ]
-
-          return (
-            <group key={`rays-${index}`}>
-              <Line points={raySourceToSlit} color={lightColor} lineWidth={1} opacity={0.3} />
-              <Line points={raySlitToScreen} color={lightColor} lineWidth={1} opacity={point.intensity * 0.7} />
-            </group>
-          )
+        screenIntensity.map((point, index) => {
+          if (index % 10 === 0) {
+            const raySourceToSlit = [[sourcePosition, 0, 0], [slitPosition, 0, 0]] as [number, number, number][]
+            const raySlitToScreen = [[slitPosition, 0, 0], [screenPositionX, point.y, 0]] as [number, number, number][]
+            return (
+              <group key={`rays-${index}`}>
+                <Line points={raySourceToSlit} color={lightColor} lineWidth={1} opacity={0.3} />
+                <Line points={raySlitToScreen} color={lightColor} lineWidth={1} opacity={point.intensity * 0.7} />
+              </group>
+            )
+          }
+          return null
         })}
 
       {/* Intensity graph */}
@@ -582,7 +596,10 @@ function SingleSlitDiffraction({
         </Text>
 
         <Text position={[0, -2, 0]} fontSize={0.7} color="#FFFF00" anchorX="center">
-          First minimum at angle: {Math.atan((wavelength * 1e-9) / (slitWidth * 1e-3)) * (180 / Math.PI).toFixed(2)}°
+          First minimum at angle: {(() => {
+            const angle = Math.atan((wavelength * 1e-9) / (slitWidth * 1e-3)) * (180 / Math.PI);
+            return angle.toFixed(2);
+          })()}°
         </Text>
       </group>
     </group>
@@ -600,6 +617,17 @@ function DiffractionGrating({
   showIntensity,
   time,
   lightColor,
+}: {
+  wavelength: number;
+  slitWidth: number;
+  slitCount: number;
+  slitSpacing: number;
+  screenDistance: number;
+  showWavefronts: boolean;
+  showRays: boolean;
+  showIntensity: boolean;
+  time: number;
+  lightColor: string;
 }) {
   // Constants for visualization
   const sourcePosition = -10
@@ -812,7 +840,7 @@ function DiffractionGrating({
 
       {/* Wavefronts */}
       {wavefronts.map((points, index) => (
-        <Line key={`wavefront-${index}`} points={points} color={lightColor} lineWidth={1} opacity={0.5} />
+        <Line key={`wavefront-${index}`} points={points.map(p => [p[0], p[1], 0] as [number, number, number])} color={lightColor} lineWidth={1} opacity={0.5} />
       ))}
 
       {/* Light rays */}
@@ -836,9 +864,9 @@ function DiffractionGrating({
 
                 return (
                   <group key={`ray-${index}-${slitIndex}`}>
-                    <Line points={raySourceToSlit} color={lightColor} lineWidth={1} opacity={0.2} />
+                    <Line points={[[sourcePosition, 0, 0], [slitPositions[slitIndex], 0, 0]] as [number, number, number][]} color={lightColor} lineWidth={1} opacity={0.2} />
                     <Line
-                      points={raySlitToScreen}
+                      points={[[slitPositions[slitIndex], 0, 0], [screenPositionX, point.y, 0]] as [number, number, number][]}
                       color={lightColor}
                       lineWidth={1}
                       opacity={(point.intensity * 0.5) / slitCount}
@@ -933,7 +961,10 @@ function DiffractionGrating({
 
         <Text position={[0, -2, 0]} fontSize={0.7} color="#FFFF00" anchorX="center">
           First order maximum at angle:{" "}
-          {Math.asin((wavelength * 1e-9) / (slitSpacing * 1e-3)) * (180 / Math.PI).toFixed(2)}°
+          {(() => {
+            const angle = Math.asin((wavelength * 1e-9) / (slitSpacing * 1e-3)) * (180 / Math.PI);
+            return angle.toFixed(2);
+          })()}°
         </Text>
       </group>
     </group>
@@ -941,7 +972,7 @@ function DiffractionGrating({
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ dir, origin, length, color }: { dir: Vector3; origin: Vector3; length: number; color: string }) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 

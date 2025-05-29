@@ -4,16 +4,57 @@ import { useState, useRef, useEffect } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Line, PerspectiveCamera } from "@react-three/drei"
 
+interface DampedOscillationSceneProps {
+  amplitude: number;
+  frequency: number;
+  dampingRatio: number;
+  dampingType: "underdamped" | "critically" | "overdamped";
+  paused: boolean;
+}
+
+interface PositionPoint {
+  time: number;
+  position: number;
+}
+
+interface EnvelopePoint {
+  time: number;
+  value: number;
+}
+
+interface SpringMassDamperSystemProps {
+  position: number;
+  dampingRatio: number;
+}
+
+interface PositionTimeGraphProps {
+  positions: PositionPoint[];
+  envelopePoints: EnvelopePoint[];
+  negEnvelopePoints: EnvelopePoint[];
+  amplitude: number;
+  dampingType: "underdamped" | "critically" | "overdamped";
+}
+
+interface LabelsProps {
+  dampingType: "underdamped" | "critically" | "overdamped";
+}
+
+interface EquationsProps {
+  dampingRatio: number;
+  omega0: number;
+  omegaD: number;
+}
+
 export default function DampedOscillations() {
   const [amplitude, setAmplitude] = useState(3)
   const [frequency, setFrequency] = useState(0.5)
   const [dampingRatio, setDampingRatio] = useState(0.1)
-  const [dampingType, setDampingType] = useState("underdamped")
+  const [dampingType, setDampingType] = useState<"underdamped" | "critically" | "overdamped">("underdamped")
   const [paused, setPaused] = useState(false)
   const [showControls, setShowControls] = useState(true)
 
   // Set damping coefficient based on damping type
-  const handleDampingTypeChange = (type) => {
+  const handleDampingTypeChange = (type: "underdamped" | "critically" | "overdamped") => {
     setDampingType(type)
     switch (type) {
       case "underdamped":
@@ -138,13 +179,13 @@ export default function DampedOscillations() {
   )
 }
 
-function DampedOscillationScene({ amplitude, frequency, dampingRatio, dampingType, paused }) {
+function DampedOscillationScene({ amplitude, frequency, dampingRatio, dampingType, paused }: DampedOscillationSceneProps) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
   const [position, setPosition] = useState(0)
-  const [positions, setPositions] = useState([])
-  const [envelopePoints, setEnvelopePoints] = useState([])
-  const [negEnvelopePoints, setNegEnvelopePoints] = useState([])
+  const [positions, setPositions] = useState<PositionPoint[]>([])
+  const [envelopePoints, setEnvelopePoints] = useState<EnvelopePoint[]>([])
+  const [negEnvelopePoints, setNegEnvelopePoints] = useState<EnvelopePoint[]>([])
 
   // Calculate natural angular frequency
   const omega0 = 2 * Math.PI * frequency
@@ -153,7 +194,7 @@ function DampedOscillationScene({ amplitude, frequency, dampingRatio, dampingTyp
   const omegaD = omega0 * Math.sqrt(Math.max(0, 1 - dampingRatio * dampingRatio))
 
   // Function to calculate position based on damping type
-  const calculatePosition = (t) => {
+  const calculatePosition = (t: number) => {
     try {
       if (dampingRatio < 1) {
         // Underdamped
@@ -174,7 +215,7 @@ function DampedOscillationScene({ amplitude, frequency, dampingRatio, dampingTyp
   }
 
   // Calculate envelope functions
-  const calculateEnvelope = (t) => {
+  const calculateEnvelope = (t: number) => {
     try {
       if (dampingRatio < 1) {
         // Underdamped envelope
@@ -299,10 +340,10 @@ function CoordinateSystem() {
   )
 }
 
-function SpringMassDamperSystem({ position, dampingRatio }) {
+function SpringMassDamperSystem({ position, dampingRatio }: SpringMassDamperSystemProps) {
   const restPosition = -4
   const numCoils = 10
-  const springPoints = []
+  const springPoints: [number, number, number][] = []
 
   // Generate spring points
   const startX = restPosition
@@ -362,7 +403,7 @@ function SpringMassDamperSystem({ position, dampingRatio }) {
   )
 }
 
-function PositionTimeGraph({ positions, envelopePoints, negEnvelopePoints, amplitude, dampingType }) {
+function PositionTimeGraph({ positions, envelopePoints, negEnvelopePoints, amplitude, dampingType }: PositionTimeGraphProps) {
   const graphWidth = 10
   const graphHeight = 6
   const graphX = 0
@@ -377,20 +418,20 @@ function PositionTimeGraph({ positions, envelopePoints, negEnvelopePoints, ampli
   const graphPoints = positions.map((data, i) => {
     const x = graphX - graphWidth / 2 + (data.time / 15) * graphWidth
     const y = graphY + data.position
-    return [x, y, 0]
+    return [x, y, 0] as [number, number, number]
   })
 
   // Generate envelope points
   const upperEnvelopePoints = envelopePoints.map((data, i) => {
     const x = graphX - graphWidth / 2 + (data.time / 15) * graphWidth
     const y = graphY + data.value
-    return [x, y, 0]
+    return [x, y, 0] as [number, number, number]
   })
 
   const lowerEnvelopePoints = negEnvelopePoints.map((data, i) => {
     const x = graphX - graphWidth / 2 + (data.time / 15) * graphWidth
     const y = graphY + data.value
-    return [x, y, 0]
+    return [x, y, 0] as [number, number, number]
   })
 
   return (
@@ -446,7 +487,7 @@ function PositionTimeGraph({ positions, envelopePoints, negEnvelopePoints, ampli
   )
 }
 
-function Labels({ dampingType }) {
+function Labels({ dampingType }: LabelsProps) {
   return (
     <group>
       <Text position={[0, 5, 0]} fontSize={0.5} color="#ffffff">
@@ -464,7 +505,7 @@ function Labels({ dampingType }) {
   )
 }
 
-function Equations({ dampingRatio, omega0, omegaD }) {
+function Equations({ dampingRatio, omega0, omegaD }: EquationsProps) {
   return (
     <group position={[0, 7, 0]}>
       <Text position={[0, 0, 0]} fontSize={0.4} color="#ffffff">

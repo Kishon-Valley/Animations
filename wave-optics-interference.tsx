@@ -428,7 +428,7 @@ function DoubleSlit({
     }
 
     return fronts
-  }, [showWavefronts, visualWavelength, time, sourcePosition, slitPosition, screenPositionX, slit1Y, slit2Y])
+  }, [showWavefronts, visualWavelength, time, sourcePosition, screenDistance])
 
   // Sample points on the screen for ray visualization
   const samplePoints = useMemo(() => {
@@ -767,19 +767,7 @@ const wavefronts = useMemo(() => {
   }
 
   return fronts
-}, [\
-  showWavefronts,
-  visualWavelength,
-  time,
-  sourcePosition,
-  filmStartX,
-  filmEndX,
-  filmThicknessVisual,
-  incidentAngleRad,
-  refractedAngleRad,
-  opticalPathLength,
-  refractiveIndex,
-])
+}, [showWavefronts, visualWavelength, time, sourcePosition, filmThickness])
 
 return (
   <group position={[0, 0, 0]}>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Line, PerspectiveCamera } from "@react-three/drei"
 import { Vector3 } from "three"
@@ -219,7 +219,7 @@ export default function FluidStatics() {
         )}
 
         {selectedDemo === "pascal" && (
-          <PascalLawDemo fluidDensity={fluidDensity} showPressureVectors={showPressureVectors} />
+          <PascalLawDemo showPressureVectors={showPressureVectors} />
         )}
 
         {selectedDemo === "manometer" && (
@@ -232,12 +232,12 @@ export default function FluidStatics() {
   )
 }
 
-function PressureDepthDemo({ containerHeight, fluidDensity, showPressureVectors }) {
+function PressureDepthDemo({ containerHeight, fluidDensity, showPressureVectors }: { containerHeight: number; fluidDensity: number; showPressureVectors: boolean }) {
   const containerWidth = 8
   const g = 9.81 // Gravitational acceleration (m/s²)
 
   // Calculate pressures at different depths
-  const calculatePressure = (depth) => {
+  const calculatePressure = (depth: number) => {
     return fluidDensity * g * depth
   }
 
@@ -351,7 +351,7 @@ function PressureDepthDemo({ containerHeight, fluidDensity, showPressureVectors 
   )
 }
 
-function BuoyancyDemo({ fluidDensity, objectDensity, showForceVectors }) {
+function BuoyancyDemo({ fluidDensity, objectDensity, showForceVectors }: { fluidDensity: number; objectDensity: number; showForceVectors: boolean }) {
   const containerWidth = 8
   const containerHeight = 10
   const objectRadius = 1.5
@@ -367,21 +367,17 @@ function BuoyancyDemo({ fluidDensity, objectDensity, showForceVectors }) {
   const netForce = buoyancyForce - weightForce
 
   // Determine object position based on densities
-  let objectPosition
+  let objectPosition: [number, number, number]
   let submergedFraction
 
   if (objectDensity < fluidDensity) {
     // Object floats
-    submergedFraction = objectDensity / fluidDensity
-    objectPosition = [0, containerHeight / 2 - objectRadius * (2 - submergedFraction), 0]
-  } else if (objectDensity > fluidDensity) {
-    // Object sinks
+    objectPosition = [0, containerHeight / 2 - objectRadius, 0]
     submergedFraction = 1
-    objectPosition = [0, -containerHeight / 2 + objectRadius, 0]
   } else {
-    // Object is neutrally buoyant
-    submergedFraction = 1
-    objectPosition = [0, 0, 0]
+    // Object sinks
+    objectPosition = [0, -containerHeight / 2 + objectRadius, 0]
+    submergedFraction = 0
   }
 
   // Scale forces for visualization
@@ -474,7 +470,7 @@ function BuoyancyDemo({ fluidDensity, objectDensity, showForceVectors }) {
   )
 }
 
-function PascalLawDemo({ fluidDensity, showPressureVectors }) {
+function PascalLawDemo({ showPressureVectors }: { showPressureVectors: boolean }) {
   const [pistonPosition, setPistonPosition] = useState(0)
   const [_, forceUpdate] = useState(0)
 
@@ -676,7 +672,7 @@ function PascalLawDemo({ fluidDensity, showPressureVectors }) {
   )
 }
 
-function ManometerDemo({ fluidDensity, pressureDifference }) {
+function ManometerDemo({ fluidDensity, pressureDifference }: { fluidDensity: number; pressureDifference: number }) {
   const tubeWidth = 0.8
   const tubeHeight = 12
   const tubeSpacing = 4
@@ -790,7 +786,7 @@ function ManometerDemo({ fluidDensity, pressureDifference }) {
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ dir, origin, length, color }: { dir: Vector3; origin: Vector3; length: number; color: string }) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 

@@ -5,8 +5,40 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Line, PerspectiveCamera } from "@react-three/drei"
 import { Vector3 } from "three"
 
+interface EMRadiationSceneProps {
+  waveType: "monochromatic" | "broadband";
+  frequency: number;
+  intensity: number;
+  reflectivity: number;
+  targetMass: number;
+  showEField: boolean;
+  showBField: boolean;
+  showPoyntingVector: boolean;
+  showPressureForce: boolean;
+  paused: boolean;
+  demoMode: "basic" | "solar-sail" | "laser-cooling";
+}
+
+interface DemoProps extends EMRadiationSceneProps {
+  time: number;
+  targetPosition: number;
+  targetVelocity: number;
+  radiationPressure: number;
+  pressureForce: number;
+  targetAcceleration: number;
+  energyTransferred: number;
+  momentumTransferred: number;
+}
+
+interface ArrowHelperProps {
+  dir: Vector3;
+  origin: Vector3;
+  length: number;
+  color: string;
+}
+
 export default function EMRadiationPressure() {
-  const [waveType, setWaveType] = useState("monochromatic")
+  const [waveType, setWaveType] = useState<"monochromatic" | "broadband">("monochromatic")
   const [frequency, setFrequency] = useState(1)
   const [intensity, setIntensity] = useState(0.5)
   const [reflectivity, setReflectivity] = useState(0.5)
@@ -17,7 +49,7 @@ export default function EMRadiationPressure() {
   const [showPressureForce, setShowPressureForce] = useState(true)
   const [paused, setPaused] = useState(false)
   const [showControls, setShowControls] = useState(true)
-  const [demoMode, setDemoMode] = useState("basic") // "basic", "solar-sail", "laser-cooling"
+  const [demoMode, setDemoMode] = useState<"basic" | "solar-sail" | "laser-cooling">("basic")
 
   return (
     <div className="w-full h-screen bg-gray-900 relative">
@@ -223,19 +255,20 @@ export default function EMRadiationPressure() {
   )
 }
 
-function EMRadiationScene({
-  waveType,
-  frequency,
-  intensity,
-  reflectivity,
-  targetMass,
-  showEField,
-  showBField,
-  showPoyntingVector,
-  showPressureForce,
-  paused,
-  demoMode,
-}) {
+function EMRadiationScene(props: EMRadiationSceneProps) {
+  const {
+    waveType,
+    frequency,
+    intensity,
+    reflectivity,
+    targetMass,
+    showEField,
+    showBField,
+    showPoyntingVector,
+    showPressureForce,
+    paused,
+    demoMode,
+  } = props;
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
   const [targetPosition, setTargetPosition] = useState(0)
@@ -314,6 +347,8 @@ function EMRadiationScene({
           targetAcceleration={targetAcceleration}
           energyTransferred={energyTransferred}
           momentumTransferred={momentumTransferred}
+          paused={paused}
+          demoMode={demoMode}
         />
       )
     case "laser-cooling":
@@ -336,6 +371,8 @@ function EMRadiationScene({
           targetAcceleration={targetAcceleration}
           energyTransferred={energyTransferred}
           momentumTransferred={momentumTransferred}
+          paused={paused}
+          demoMode={demoMode}
         />
       )
     default:
@@ -358,30 +395,35 @@ function EMRadiationScene({
           targetAcceleration={targetAcceleration}
           energyTransferred={energyTransferred}
           momentumTransferred={momentumTransferred}
+          paused={paused}
+          demoMode={demoMode}
         />
       )
   }
 }
 
-function BasicRadiationPressureDemo({
-  waveType,
-  frequency,
-  intensity,
-  reflectivity,
-  targetMass,
-  showEField,
-  showBField,
-  showPoyntingVector,
-  showPressureForce,
-  time,
-  targetPosition,
-  targetVelocity,
-  radiationPressure,
-  pressureForce,
-  targetAcceleration,
-  energyTransferred,
-  momentumTransferred,
-}) {
+function BasicRadiationPressureDemo(props: DemoProps) {
+  const {
+    waveType,
+    frequency,
+    intensity,
+    reflectivity,
+    targetMass,
+    showEField,
+    showBField,
+    showPoyntingVector,
+    showPressureForce,
+    time,
+    targetPosition,
+    targetVelocity,
+    radiationPressure,
+    pressureForce,
+    targetAcceleration,
+    energyTransferred,
+    momentumTransferred,
+    paused,
+    demoMode,
+  } = props;
   // Constants for visualization
   const sourcePosition = -8
   const initialTargetPosition = 0
@@ -412,25 +454,19 @@ function BasicRadiationPressureDemo({
         {waveType === "monochromatic" ? (
           // Laser source
           <group>
-            <mesh position={[-1, 0, 0]}>
-              <cylinderGeometry args={[0.5, 0.5, 2, 16]} rotation={[0, Math.PI / 2, 0]} />
-              <meshStandardMaterial color="#444444" roughness={0.7} metalness={0.5} />
-            </mesh>
             <mesh position={[0, 0, 0]}>
-              <cylinderGeometry args={[0.3, 0.3, 0.2, 16]} rotation={[0, Math.PI / 2, 0]} />
-              <meshStandardMaterial
-                color="#FF0000"
-                emissive="#FF0000"
-                emissiveIntensity={intensity * 2}
-                roughness={0.3}
-                metalness={0.8}
-              />
+              <cylinderGeometry args={[0.5, 0.5, 2, 32]} />
+              <meshStandardMaterial color="#4a90e2" />
+            </mesh>
+            <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.5, 0.5, 2, 32]} />
+              <meshStandardMaterial color="#4a90e2" />
             </mesh>
           </group>
         ) : (
           // Broadband light source
           <group>
-            <mesh position={[-0.5, 0, 0]}>
+            <mesh position={[0, 0, 0]}>
               <sphereGeometry args={[1, 32, 32]} />
               <meshStandardMaterial
                 color="#FFDD00"
@@ -444,12 +480,12 @@ function BasicRadiationPressureDemo({
             {[...Array(8)].map((_, i) => {
               const angle = (i / 8) * Math.PI * 2
               return (
-                <mesh key={i} position={[0, 0, 0]}>
-                  <cylinderGeometry
-                    args={[0.05, 0.05, 1.5, 8]}
-                    rotation={[0, 0, angle]}
-                    position={[Math.cos(angle) * 0.75, Math.sin(angle) * 0.75, 0]}
-                  />
+                <mesh 
+                  key={i}
+                  position={[Math.cos(angle) * 0.75, Math.sin(angle) * 0.75, 0]}
+                  rotation={[0, 0, angle]}
+                >
+                  <cylinderGeometry args={[0.05, 0.05, 1.5, 8]} />
                   <meshStandardMaterial
                     color="#FFDD00"
                     emissive="#FFDD00"
@@ -652,25 +688,28 @@ function BasicRadiationPressureDemo({
   )
 }
 
-function SolarSailDemo({
-  waveType,
-  frequency,
-  intensity,
-  reflectivity,
-  targetMass,
-  showEField,
-  showBField,
-  showPoyntingVector,
-  showPressureForce,
-  time,
-  targetPosition,
-  targetVelocity,
-  radiationPressure,
-  pressureForce,
-  targetAcceleration,
-  energyTransferred,
-  momentumTransferred,
-}) {
+function SolarSailDemo(props: DemoProps) {
+  const {
+    waveType,
+    frequency,
+    intensity,
+    reflectivity,
+    targetMass,
+    showEField,
+    showBField,
+    showPoyntingVector,
+    showPressureForce,
+    time,
+    targetPosition,
+    targetVelocity,
+    radiationPressure,
+    pressureForce,
+    targetAcceleration,
+    energyTransferred,
+    momentumTransferred,
+    paused,
+    demoMode,
+  } = props;
   // Constants for visualization
   const sourcePosition = -10
   const initialTargetPosition = 0
@@ -728,20 +767,21 @@ function SolarSailDemo({
       {/* Solar Sail */}
       <group position={[initialTargetPosition + targetPosition, 0, 0]} rotation={[0, 0, sailTilt]}>
         {/* Sail material */}
-        <mesh rotation={[0, Math.PI / 2, 0]}>
-          <planeGeometry args={[5, 5]} />
-          <meshStandardMaterial
-            color="#DDDDDD"
-            roughness={0.1}
-            metalness={0.9}
-            side={2}
-            transparent={true}
-            opacity={0.9}
-          />
+        <mesh position={[0, 0, 0]}>
+          <torusGeometry args={[1, 0.2, 16, 32]} />
+          <meshStandardMaterial color="#4a90e2" />
+        </mesh>
+        <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1, 0.2, 16, 32]} />
+          <meshStandardMaterial color="#4a90e2" />
         </mesh>
         {/* Sail frame */}
         <mesh position={[0, 0, 0]}>
-          <torusGeometry args={[2.5, 0.05, 16, 32]} rotation={[0, Math.PI / 2, 0]} />
+          <torusGeometry args={[2.5, 0.05, 16, 32]} />
+          <meshStandardMaterial color="#888888" roughness={0.4} metalness={0.6} />
+        </mesh>
+        <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[2.5, 0.05, 16, 32]} />
           <meshStandardMaterial color="#888888" roughness={0.4} metalness={0.6} />
         </mesh>
         {/* Spacecraft body */}
@@ -891,25 +931,28 @@ function SolarSailDemo({
   )
 }
 
-function LaserCoolingDemo({
-  waveType,
-  frequency,
-  intensity,
-  reflectivity,
-  targetMass,
-  showEField,
-  showBField,
-  showPoyntingVector,
-  showPressureForce,
-  time,
-  targetPosition,
-  targetVelocity,
-  radiationPressure,
-  pressureForce,
-  targetAcceleration,
-  energyTransferred,
-  momentumTransferred,
-}) {
+function LaserCoolingDemo(props: DemoProps) {
+  const {
+    waveType,
+    frequency,
+    intensity,
+    reflectivity,
+    targetMass,
+    showEField,
+    showBField,
+    showPoyntingVector,
+    showPressureForce,
+    time,
+    targetPosition,
+    targetVelocity,
+    radiationPressure,
+    pressureForce,
+    targetAcceleration,
+    energyTransferred,
+    momentumTransferred,
+    paused,
+    demoMode,
+  } = props;
   // Constants for visualization
   const sourcePosition = -8
   const initialTargetPosition = 0
@@ -940,13 +983,13 @@ function LaserCoolingDemo({
       {/* Laser Source */}
       <group position={[sourcePosition, 0, 0]}>
         {/* Laser body */}
-        <mesh position={[-1, 0, 0]}>
-          <cylinderGeometry args={[0.5, 0.5, 2, 16]} rotation={[0, Math.PI / 2, 0]} />
+        <mesh position={[-1, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <cylinderGeometry args={[0.5, 0.5, 2, 16]} />
           <meshStandardMaterial color="#444444" roughness={0.7} metalness={0.5} />
         </mesh>
         {/* Laser aperture */}
-        <mesh position={[0, 0, 0]}>
-          <cylinderGeometry args={[0.3, 0.3, 0.2, 16]} rotation={[0, Math.PI / 2, 0]} />
+        <mesh position={[0, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <cylinderGeometry args={[0.3, 0.3, 0.2, 16]} />
           <meshStandardMaterial
             color="#0088FF"
             emissive="#0088FF"
@@ -1149,7 +1192,7 @@ function LaserCoolingDemo({
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ dir, origin, length, color }: ArrowHelperProps) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 

@@ -4,6 +4,46 @@ import { useState, useRef } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Line, PerspectiveCamera } from "@react-three/drei"
 
+interface Wavefront {
+  birthTime: number;
+  sourcePosition: number;
+}
+
+interface DopplerSceneProps {
+  sourceVelocity: number;
+  waveSpeed: number;
+  frequency: number;
+  amplitude: number;
+  showWavefronts: boolean;
+  showFrequencyShift: boolean;
+  paused: boolean;
+  observerPosition: number;
+}
+
+interface WavefrontCircleProps {
+  center: [number, number, number];
+  radius: number;
+  color: string;
+}
+
+interface FrequencyVisualizationProps {
+  sourcePosition: number;
+  observerPosition: number;
+  emittedFrequency: number;
+  observedFrequency: number;
+  amplitude: number;
+  time: number;
+}
+
+interface DopplerExplanationProps {
+  sourceVelocity: number;
+  waveSpeed: number;
+  frequency: number;
+  observedFrequency: number;
+  wavelength: number;
+  shiftedWavelength: number;
+}
+
 export default function DopplerEffect() {
   const [sourceVelocity, setSourceVelocity] = useState(0)
   const [waveSpeed, setWaveSpeed] = useState(10)
@@ -160,11 +200,11 @@ function DopplerScene({
   showFrequencyShift,
   paused,
   observerPosition,
-}) {
+}: DopplerSceneProps) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
   const [sourcePosition, setSourcePosition] = useState(0)
-  const [wavefronts, setWavefronts] = useState([])
+  const [wavefronts, setWavefronts] = useState<Wavefront[]>([])
   const [observedFrequency, setObservedFrequency] = useState(frequency)
 
   // Update time and source position
@@ -305,15 +345,15 @@ function CoordinateSystem() {
   )
 }
 
-function WavefrontCircle({ center, radius, color }) {
+function WavefrontCircle({ center, radius, color }: WavefrontCircleProps) {
   const segments = 64
-  const points = []
+  const points: [number, number, number][] = []
 
   for (let i = 0; i <= segments; i++) {
     const theta = (i / segments) * Math.PI * 2
     const x = center[0] + radius * Math.cos(theta)
     const y = center[1] + radius * Math.sin(theta)
-    points.push([x, y, 0])
+    points.push([x, y, 0] as [number, number, number])
   }
 
   return <Line points={points} color={color} lineWidth={1} opacity={0.5} />
@@ -326,25 +366,25 @@ function FrequencyVisualization({
   observedFrequency,
   amplitude,
   time,
-}) {
+}: FrequencyVisualizationProps) {
   // Generate points for emitted wave (at source)
-  const emittedWavePoints = []
+  const emittedWavePoints: [number, number, number][] = []
   const numPoints = 100
   const waveLength = 10
 
   for (let i = 0; i <= numPoints; i++) {
     const x = sourcePosition - waveLength / 2 + (i / numPoints) * waveLength
     const y = -4 + amplitude * Math.sin(2 * Math.PI * emittedFrequency * (time - (x - sourcePosition) / 10))
-    emittedWavePoints.push([x, y, 0])
+    emittedWavePoints.push([x, y, 0] as [number, number, number])
   }
 
   // Generate points for observed wave (at observer)
-  const observedWavePoints = []
+  const observedWavePoints: [number, number, number][] = []
 
   for (let i = 0; i <= numPoints; i++) {
     const x = observerPosition - waveLength / 2 + (i / numPoints) * waveLength
     const y = -6 + amplitude * Math.sin(2 * Math.PI * observedFrequency * (time - (x - observerPosition) / 10))
-    observedWavePoints.push([x, y, 0])
+    observedWavePoints.push([x, y, 0] as [number, number, number])
   }
 
   return (
@@ -371,7 +411,7 @@ function DopplerExplanation({
   observedFrequency,
   wavelength,
   shiftedWavelength,
-}) {
+}: DopplerExplanationProps) {
   // Determine if source is moving toward or away from observer
   const movingToward = sourceVelocity > 0
   const movingAway = sourceVelocity < 0

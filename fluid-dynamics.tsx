@@ -5,6 +5,14 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Line, PerspectiveCamera } from "@react-three/drei"
 import { Vector3 } from "three"
 
+interface Particle {
+  x: number;
+  y: number;
+  speed: number;
+  baseY?: number;
+  phase?: number;
+}
+
 export default function FluidDynamics() {
   const [selectedDemo, setSelectedDemo] = useState("bernoulli")
   const [flowRate, setFlowRate] = useState(5)
@@ -216,10 +224,10 @@ export default function FluidDynamics() {
   )
 }
 
-function BernoulliDemo({ flowRate, showVelocityVectors, showPressureValues }) {
+function BernoulliDemo({ flowRate, showVelocityVectors, showPressureValues }: { flowRate: number; showVelocityVectors: boolean; showPressureValues: boolean }) {
   const pipeLength = 16
-  const wideRadius = 1.5
-  const narrowRadius = 0.8
+  const wideRadius = 2
+  const narrowRadius = 1
   const transitionLength = 2
 
   // Calculate velocities and pressures based on Bernoulli's principle
@@ -237,7 +245,7 @@ function BernoulliDemo({ flowRate, showVelocityVectors, showPressureValues }) {
     referencePressure - 0.5 * density * (narrowVelocity * narrowVelocity - wideVelocity * wideVelocity)
 
   // Generate particles for flow visualization
-  const particlesRef = useRef([])
+  const particlesRef = useRef<Particle[]>([])
   const [_, forceUpdate] = useState(0)
 
   // Initialize particles if empty
@@ -404,7 +412,7 @@ function BernoulliDemo({ flowRate, showVelocityVectors, showPressureValues }) {
   )
 }
 
-function ContinuityDemo({ flowRate, showVelocityVectors }) {
+function ContinuityDemo({ flowRate, showVelocityVectors }: { flowRate: number; showVelocityVectors: boolean }) {
   const pipeLength = 16
   const section1Radius = 2
   const section2Radius = 1
@@ -421,7 +429,7 @@ function ContinuityDemo({ flowRate, showVelocityVectors }) {
   const velocity3 = flowRate / area3
 
   // Generate particles for flow visualization
-  const particlesRef = useRef([])
+  const particlesRef = useRef<Particle[]>([])
   const [_, forceUpdate] = useState(0)
 
   // Initialize particles if empty
@@ -511,41 +519,32 @@ function ContinuityDemo({ flowRate, showVelocityVectors }) {
       {/* Pipe sections */}
       <group>
         {/* Section 1 */}
-        <mesh position={[-sectionLength, 0, 0]}>
-          <cylinderGeometry
-            args={[section1Radius, section1Radius, sectionLength, 32, 1, true]}
-            rotation={[Math.PI / 2, 0, 0]}
-          />
+        <mesh position={[-sectionLength, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[section1Radius, section1Radius, sectionLength, 32, 1, true]} />
           <meshStandardMaterial color="#888888" transparent opacity={0.5} />
         </mesh>
 
         {/* Section 2 */}
-        <mesh position={[0, 0, 0]}>
-          <cylinderGeometry
-            args={[section2Radius, section2Radius, sectionLength, 32, 1, true]}
-            rotation={[Math.PI / 2, 0, 0]}
-          />
+        <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[section2Radius, section2Radius, sectionLength, 32, 1, true]} />
           <meshStandardMaterial color="#888888" transparent opacity={0.5} />
         </mesh>
 
         {/* Section 3 */}
-        <mesh position={[sectionLength, 0, 0]}>
-          <cylinderGeometry
-            args={[section3Radius, section3Radius, sectionLength, 32, 1, true]}
-            rotation={[Math.PI / 2, 0, 0]}
-          />
+        <mesh position={[sectionLength, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[section3Radius, section3Radius, sectionLength, 32, 1, true]} />
           <meshStandardMaterial color="#888888" transparent opacity={0.5} />
         </mesh>
 
         {/* Transition 1-2 */}
-        <mesh position={[-sectionLength / 2, 0, 0]}>
-          <cylinderGeometry args={[section1Radius, section2Radius, 0.5, 32, 1, true]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh position={[-sectionLength / 2, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[section1Radius, section2Radius, 0.5, 32, 1, true]} />
           <meshStandardMaterial color="#888888" transparent opacity={0.5} />
         </mesh>
 
         {/* Transition 2-3 */}
-        <mesh position={[sectionLength / 2, 0, 0]}>
-          <cylinderGeometry args={[section2Radius, section3Radius, 0.5, 32, 1, true]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh position={[sectionLength / 2, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[section2Radius, section3Radius, 0.5, 32, 1, true]} />
           <meshStandardMaterial color="#888888" transparent opacity={0.5} />
         </mesh>
       </group>
@@ -605,7 +604,7 @@ function ContinuityDemo({ flowRate, showVelocityVectors }) {
   )
 }
 
-function FlowTypesDemo({ reynoldsNumber, flowRate }) {
+function FlowTypesDemo({ reynoldsNumber, flowRate }: { reynoldsNumber: number; flowRate: number }) {
   const pipeLength = 16
   const pipeRadius = 2
 
@@ -613,7 +612,7 @@ function FlowTypesDemo({ reynoldsNumber, flowRate }) {
   const flowType = reynoldsNumber < 2000 ? "laminar" : reynoldsNumber < 4000 ? "transitional" : "turbulent"
 
   // Generate particles for flow visualization
-  const particlesRef = useRef([])
+  const particlesRef = useRef<Particle[]>([])
   const timeRef = useRef(0)
   const [_, forceUpdate] = useState(0)
 
@@ -653,18 +652,12 @@ function FlowTypesDemo({ reynoldsNumber, flowRate }) {
         particle.speed = baseSpeed
       } else if (flowType === "transitional") {
         // Moderate fluctuations
-        particle.speed = baseSpeed * (1 + 0.2 * Math.sin(timeRef.current * 5 + particle.phase))
-
-        // Small y-position fluctuations
-        particle.y = particle.baseY + 0.2 * Math.sin(timeRef.current * 3 + particle.phase)
+        particle.speed = baseSpeed * (1 + 0.2 * Math.sin(timeRef.current * 5 + (particle.phase ?? 0)))
+        particle.y = (particle.baseY ?? 0) + 0.2 * Math.sin(timeRef.current * 3 + (particle.phase ?? 0))
       } else {
         // Strong fluctuations for turbulent flow
-        particle.speed = baseSpeed * (1 + 0.4 * Math.sin(timeRef.current * 10 + particle.phase))
-
-        // Larger y-position fluctuations
-        particle.y =
-          particle.baseY +
-          0.5 * Math.sin(timeRef.current * 6 + particle.phase) * Math.cos(timeRef.current * 4 + particle.phase * 2)
+        particle.speed = baseSpeed * (1 + 0.4 * Math.sin(timeRef.current * 10 + (particle.phase ?? 0)))
+        particle.y = (particle.baseY ?? 0) + 0.5 * Math.sin(timeRef.current * 6 + (particle.phase ?? 0)) * Math.cos(timeRef.current * 4 + (particle.phase ?? 0) * 2)
       }
 
       // Update position
@@ -788,7 +781,7 @@ function FlowTypesDemo({ reynoldsNumber, flowRate }) {
   )
 }
 
-function ViscosityDemo({ viscosity, flowRate }) {
+function ViscosityDemo({ viscosity, flowRate }: { viscosity: number; flowRate: number }) {
   const channelLength = 16
   const channelHeight = 6
   const objectRadius = 0.8
@@ -813,7 +806,7 @@ function ViscosityDemo({ viscosity, flowRate }) {
   }
 
   // Generate particles for flow visualization
-  const particlesRef = useRef([])
+  const particlesRef = useRef<Particle[]>([])
   const [_, forceUpdate] = useState(0)
 
   // Initialize particles if empty
@@ -910,7 +903,7 @@ function ViscosityDemo({ viscosity, flowRate }) {
       />
 
       {/* Object */}
-      <mesh position={objectPosition}>
+      <mesh position={objectPosition as [number, number, number]}>
         <sphereGeometry args={[objectRadius, 32, 32]} />
         <meshStandardMaterial color="#FF4500" />
       </mesh>
@@ -968,7 +961,7 @@ function ViscosityDemo({ viscosity, flowRate }) {
   )
 }
 
-function PipeShape({ pipeLength, wideRadius, narrowRadius, transitionLength }) {
+function PipeShape({ pipeLength, wideRadius, narrowRadius, transitionLength }: { pipeLength: number; wideRadius: number; narrowRadius: number; transitionLength: number }) {
   // Generate points for the pipe outline
   const numPoints = 50
   const topPoints = []
@@ -990,8 +983,8 @@ function PipeShape({ pipeLength, wideRadius, narrowRadius, transitionLength }) {
       radius = wideRadius * (1 - t) + narrowRadius * t
     }
 
-    topPoints.push([x, radius, 0])
-    bottomPoints.push([x, -radius, 0])
+    topPoints.push([x, radius, 0] as [number, number, number])
+    bottomPoints.push([x, -radius, 0] as [number, number, number])
   }
 
   // Combine points for complete outline
@@ -1012,7 +1005,7 @@ function PipeShape({ pipeLength, wideRadius, narrowRadius, transitionLength }) {
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ dir, origin, length, color }: { dir: Vector3; origin: Vector3; length: number; color: string }) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 
