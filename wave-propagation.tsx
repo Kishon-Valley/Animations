@@ -996,7 +996,7 @@ function ImpedanceDemo({
 // Helper component for arrows
 function ArrowHelper({ 
   dir, 
-  origin, 
+  origin,
   length, 
   color 
 }: { 
