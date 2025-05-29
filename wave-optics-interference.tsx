@@ -20,7 +20,7 @@ export default function WaveOpticsInterference() {
   const [showControls, setShowControls] = useState(true)
 
   // Convert wavelength to visible color
-  const wavelengthToColor = (wavelength) => {
+  const wavelengthToColor = (wavelength: number) => {
     // Simple conversion from wavelength to RGB
     let r, g, b
     if (wavelength >= 380 && wavelength < 440) {
@@ -267,6 +267,19 @@ function WaveOpticsScene({
   showPhaseDifference,
   paused,
   lightColor,
+}: {
+  experimentType: string;
+  wavelength: number;
+  slitSeparation: number;
+  screenDistance: number;
+  filmThickness: number;
+  refractiveIndex: number;
+  incidentAngle: number;
+  showWavefronts: boolean;
+  showRays: boolean;
+  showPhaseDifference: boolean;
+  paused: boolean;
+  lightColor: string;
 }) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
@@ -320,6 +333,15 @@ function DoubleSlit({
   showPhaseDifference,
   time,
   lightColor,
+}: {
+  wavelength: number;
+  slitSeparation: number;
+  screenDistance: number;
+  showWavefronts: boolean;
+  showRays: boolean;
+  showPhaseDifference: boolean;
+  time: number;
+  lightColor: string;
 }) {
   // Constants for visualization
   const sourcePosition = -10
@@ -374,7 +396,7 @@ function DoubleSlit({
     for (let i = 0; i < numWavefronts; i++) {
       const radius = (i * visualWavelength + time * 5) % maxRadius
       if (radius > 0.5) {
-        const points = []
+        const points: [number, number, number][] = []
         for (let j = 0; j <= 32; j++) {
           const angle = (j / 32) * Math.PI
           const x = sourcePosition + radius * Math.cos(angle)
@@ -393,7 +415,7 @@ function DoubleSlit({
     for (let i = 0; i < numWavefronts; i++) {
       const radius = (i * visualWavelength + time * 5) % maxRadius
       if (radius > 0.5) {
-        const points = []
+        const points: [number, number, number][] = []
         for (let j = 0; j <= 32; j++) {
           const angle = (j / 32) * Math.PI - Math.PI / 2
           const x = slitPosition + radius * Math.cos(angle)
@@ -412,7 +434,7 @@ function DoubleSlit({
     for (let i = 0; i < numWavefronts; i++) {
       const radius = (i * visualWavelength + time * 5) % maxRadius
       if (radius > 0.5) {
-        const points = []
+        const points: [number, number, number][] = []
         for (let j = 0; j <= 32; j++) {
           const angle = (j / 32) * Math.PI - Math.PI / 2
           const x = slitPosition + radius * Math.cos(angle)
@@ -509,7 +531,7 @@ function DoubleSlit({
       })}
 
       {/* Wavefronts */}
-      {wavefronts.map((points, index) => (
+      {wavefronts?.map((points: [number, number, number][], index) => (
         <Line key={`wavefront-${index}`} points={points} color={lightColor} lineWidth={1} opacity={0.5} />
       ))}
 
@@ -517,25 +539,25 @@ function DoubleSlit({
       {showRays &&
         samplePoints.map((point, index) => {
           // Ray from source to slit 1
-          const ray1SourceToSlit = [
+          const ray1SourceToSlit: [number, number, number][] = [
             [sourcePosition, 0, 0],
             [slitPosition, slit1Y, 0],
           ]
 
           // Ray from slit 1 to screen
-          const ray1SlitToScreen = [
+          const ray1SlitToScreen: [number, number, number][] = [
             [slitPosition, slit1Y, 0],
             [screenPositionX, point.y, 0],
           ]
 
           // Ray from source to slit 2
-          const ray2SourceToSlit = [
+          const ray2SourceToSlit: [number, number, number][] = [
             [sourcePosition, 0, 0],
             [slitPosition, slit2Y, 0],
           ]
 
           // Ray from slit 2 to screen
-          const ray2SlitToScreen = [
+          const ray2SlitToScreen: [number, number, number][] = [
             [slitPosition, slit2Y, 0],
             [screenPositionX, point.y, 0],
           ]
@@ -629,382 +651,402 @@ function DoubleSlit({
 }
 
 function ThinFilm({
-wavelength,
-filmThickness,
-refractiveIndex,
-incidentAngle,
-showWavefronts,
-showRays,
-showPhaseDifference,
-time,
-lightColor,
+  wavelength,
+  filmThickness,
+  refractiveIndex,
+  incidentAngle,
+  showWavefronts,
+  showRays,
+  showPhaseDifference,
+  time,
+  lightColor,
+}: {
+  wavelength: number;
+  filmThickness: number;
+  refractiveIndex: number;
+  incidentAngle: number;
+  showWavefronts: boolean;
+  showRays: boolean;
+  showPhaseDifference: boolean;
+  time: number;
+  lightColor: string;
 }) {
-// Constants for visualization
-const sourcePosition = -8
-const filmStartX = -4
-const filmEndX = 4
-const filmThicknessVisual = filmThickness / 100 // Scale for visualization
+  // Constants for visualization
+  const sourcePosition = -8
+  const filmStartX = -4
+  const filmEndX = 4
+  const filmThicknessVisual = filmThickness / 100 // Scale for visualization
 
-// Convert wavelength from nm to visualization units
-const visualWavelength = wavelength / 100
+  // Convert wavelength from nm to visualization units
+  const visualWavelength = wavelength / 100
 
-// Convert incident angle to radians
-const incidentAngleRad = (incidentAngle * Math.PI) / 180
+  // Convert incident angle to radians
+  const incidentAngleRad = (incidentAngle * Math.PI) / 180
 
-// Calculate refracted angle using Snell's law
-const refractedAngleRad = Math.asin(Math.sin(incidentAngleRad) / refractiveIndex)
+  // Calculate refracted angle using Snell's law
+  const refractedAngleRad = Math.asin(Math.sin(incidentAngleRad) / refractiveIndex)
 
-// Calculate reflection points
-const entryPoint = [filmStartX, 0, 0]
-const exitPoint = [filmStartX + 2 * filmThicknessVisual * Math.tan(refractedAngleRad), -filmThicknessVisual, 0]
+  // Calculate reflection points
+  const entryPoint = [filmStartX, 0, 0]
+  const exitPoint = [filmStartX + 2 * filmThicknessVisual * Math.tan(refractedAngleRad), -filmThicknessVisual, 0]
 
-// Calculate optical path length for the ray in the film
-const pathInFilm = (2 * filmThicknessVisual) / Math.cos(refractedAngleRad)
-const opticalPathLength = pathInFilm * refractiveIndex
+  // Calculate optical path length for the ray in the film
+  const pathInFilm = (2 * filmThicknessVisual) / Math.cos(refractedAngleRad)
+  const opticalPathLength = pathInFilm * refractiveIndex
 
-// Calculate phase difference
-// Phase shift due to path difference
-const pathPhaseDiff = (2 * Math.PI * opticalPathLength) / visualWavelength
+  // Calculate phase difference
+  // Phase shift due to path difference
+  const pathPhaseDiff = (2 * Math.PI * opticalPathLength) / visualWavelength
 
-// Additional phase shift due to reflection (π if n1 < n2, 0 if n1 > n2)
-// For air to film, n1 (air) < n2 (film), so there's a π phase shift
-const reflectionPhaseDiff = Math.PI
+  // Additional phase shift due to reflection (π if n1 < n2, 0 if n1 > n2)
+  // For air to film, n1 (air) < n2 (film), so there's a π phase shift
+  const reflectionPhaseDiff = Math.PI
 
-// Total phase difference
-const totalPhaseDiff = pathPhaseDiff + reflectionPhaseDiff
+  // Total phase difference
+  const totalPhaseDiff = pathPhaseDiff + reflectionPhaseDiff
 
-// Determine if constructive or destructive interference
-const isConstructive = Math.cos(totalPhaseDiff / 2) > 0.7
-const isDestructive = Math.cos(totalPhaseDiff / 2) < 0.3
+  // Determine if constructive or destructive interference
+  const isConstructive = Math.cos(totalPhaseDiff / 2) > 0.7
+  const isDestructive = Math.cos(totalPhaseDiff / 2) < 0.3
 
-// Calculate the interference color
-const interferenceResult = Math.pow(Math.cos(totalPhaseDiff / 2), 2)
+  // Calculate the interference color
+  const interferenceResult = Math.pow(Math.cos(totalPhaseDiff / 2), 2)
 
-// Generate wavefronts
-const wavefronts = useMemo(() => {
-  if (!showWavefronts) return []
+  // Generate wavefronts
+  const wavefronts = useMemo(() => {
+    if (!showWavefronts) return []
 
-  const fronts = []
-  const numWavefronts = 10
-  const maxRadius = 15
+    const fronts = []
+    const numWavefronts = 10
+    const maxRadius = 15
 
-  // Incident wavefronts (from source to film)
-  for (let i = 0; i < numWavefronts; i++) {
-    const radius = (i * visualWavelength + time * 5) % maxRadius
-    if (radius > 0.5) {
-      const points = []
-      for (let j = 0; j <= 32; j++) {
-        const angle = (j / 32) * Math.PI - Math.PI / 2 + incidentAngleRad
-        const x = sourcePosition + radius * Math.cos(angle)
-        const y = radius * Math.sin(angle)
-        if (x <= filmStartX) {
-          points.push([x, y, 0])
+    // Incident wavefronts (from source to film)
+    for (let i = 0; i < numWavefronts; i++) {
+      const radius = (i * visualWavelength + time * 5) % maxRadius
+      if (radius > 0.5) {
+        const points: [number, number, number][] = []
+        for (let j = 0; j <= 32; j++) {
+          const angle = (j / 32) * Math.PI - Math.PI / 2 + incidentAngleRad
+          const x = sourcePosition + radius * Math.cos(angle)
+          const y = radius * Math.sin(angle)
+          if (x <= filmStartX) {
+            points.push([x, y, 0])
+          }
+        }
+        if (points.length > 0) {
+          fronts.push(points)
         }
       }
-      if (points.length > 0) {
-        fronts.push(points)
-      }
     }
-  }
 
-  // Wavefronts in the film
-  for (let i = 0; i < numWavefronts; i++) {
-    const radius = ((i * visualWavelength) / refractiveIndex + time * 5) % maxRadius
-    if (radius > 0.5) {
-      const points = []
-      for (let j = 0; j <= 32; j++) {
-        const angle = (j / 32) * Math.PI - Math.PI / 2 + refractedAngleRad
-        const x = entryPoint[0] + radius * Math.cos(angle)
-        const y = entryPoint[1] + radius * Math.sin(angle)
-        if (x >= filmStartX && x <= filmEndX && y <= 0 && y >= -filmThicknessVisual) {
-          points.push([x, y, 0])
+    // Wavefronts in the film
+    for (let i = 0; i < numWavefronts; i++) {
+      const radius = ((i * visualWavelength) / refractiveIndex + time * 5) % maxRadius
+      if (radius > 0.5) {
+        const points: [number, number, number][] = []
+        for (let j = 0; j <= 32; j++) {
+          const angle = (j / 32) * Math.PI - Math.PI / 2 + refractedAngleRad
+          const x = entryPoint[0] + radius * Math.cos(angle)
+          const y = entryPoint[1] + radius * Math.sin(angle)
+          if (x >= filmStartX && x <= filmEndX && y <= 0 && y >= -filmThicknessVisual) {
+            points.push([x, y, 0])
+          }
+        }
+        if (points.length > 0) {
+          fronts.push(points)
         }
       }
-      if (points.length > 0) {
-        fronts.push(points)
-      }
     }
-  }
 
-  // Reflected wavefronts from top surface
-  for (let i = 0; i < numWavefronts; i++) {
-    const radius = (i * visualWavelength + time * 5) % maxRadius
-    if (radius >  i++) {
-    const radius = (i * visualWavelength + time * 5) % maxRadius
-    if (radius > 0.5) {
-      const points = []
-      for (let j = 0; j <= 32; j++) {
-        const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
-        const x = entryPoint[0] + radius * Math.cos(angle)
-        const y = entryPoint[1] + radius * Math.sin(angle)
-        if (x <= filmStartX) {
-          points.push([x, y, 0])
+    // Reflected wavefronts from top surface
+    for (let i = 0; i < numWavefronts; i++) {
+      const radius = (i * visualWavelength + time * 5) % maxRadius
+      if (radius >  i++) {
+      const radius = (i * visualWavelength + time * 5) % maxRadius
+      if (radius > 0.5) {
+        const points: [number, number, number][] = []
+        for (let j = 0; j <= 32; j++) {
+          const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
+          const x = entryPoint[0] + radius * Math.cos(angle)
+          const y = entryPoint[1] + radius * Math.sin(angle)
+          if (x <= filmStartX) {
+            points.push([x, y, 0])
+          }
+        }
+        if (points.length > 0) {
+          fronts.push(points)
         }
       }
-      if (points.length > 0) {
-        fronts.push(points)
-      }
     }
-  }
 
-  // Reflected wavefronts from bottom surface
-  for (let i = 0; i < numWavefronts; i++) {
-    const radius = (i * visualWavelength + time * 5 + opticalPathLength) % maxRadius
-    if (radius > 0.5) {
-      const points = []
-      for (let j = 0; j <= 32; j++) {
-        const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
-        const x = exitPoint[0] + radius * Math.cos(angle)
-        const y = exitPoint[1] - radius * Math.sin(angle)
-        if (x <= filmStartX) {
-          points.push([x, y, 0])
+    // Reflected wavefronts from bottom surface
+    for (let i = 0; i < numWavefronts; i++) {
+      const radius = (i * visualWavelength + time * 5 + opticalPathLength) % maxRadius
+      if (radius > 0.5) {
+        const points: [number, number, number][] = []
+        for (let j = 0; j <= 32; j++) {
+          const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
+          const x = exitPoint[0] + radius * Math.cos(angle)
+          const y = exitPoint[1] - radius * Math.sin(angle)
+          if (x <= filmStartX) {
+            points.push([x, y, 0])
+          }
+        }
+        if (points.length > 0) {
+          fronts.push(points)
         }
       }
-      if (points.length > 0) {
-        fronts.push(points)
-      }
     }
-  }
 
-  return fronts
-}, [showWavefronts, visualWavelength, time, sourcePosition, filmThickness])
+    return fronts
+  }, [showWavefronts, visualWavelength, time, sourcePosition, filmThickness])
 
-return (
-  <group position={[0, 0, 0]}>
-    {/* Light source */}
-    <mesh position={[sourcePosition, 0, 0]}>
-      <sphereGeometry args={[0.5, 16, 16]} />
-      <meshStandardMaterial color={lightColor} emissive={lightColor} emissiveIntensity={1} />
-    </mesh>
-    <Text position={[sourcePosition, 1.5, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-      LIGHT SOURCE
-    </Text>
+  return (
+    <group position={[0, 0, 0]}>
+      {/* Light source */}
+      <mesh position={[sourcePosition, 0, 0]}>
+        <sphereGeometry args={[0.5, 16, 16]} />
+        <meshStandardMaterial color={lightColor} emissive={lightColor} emissiveIntensity={1} />
+      </mesh>
+      <Text position={[sourcePosition, 1.5, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+        LIGHT SOURCE
+      </Text>
 
-    {/* Thin film */}
-    <mesh position={[0, -filmThicknessVisual / 2, 0]}>
-      <boxGeometry args={[filmEndX - filmStartX, filmThicknessVisual, 0.2]} />
-      <meshStandardMaterial color="#88CCFF" transparent={true} opacity={0.5} roughness={0.1} metalness={0.2} />
-    </mesh>
+      {/* Thin film */}
+      <mesh position={[0, -filmThicknessVisual / 2, 0]}>
+        <boxGeometry args={[filmEndX - filmStartX, filmThicknessVisual, 0.2]} />
+        <meshStandardMaterial color="#88CCFF" transparent={true} opacity={0.5} roughness={0.1} metalness={0.2} />
+      </mesh>
 
-    {/* Film boundaries */}
-    <Line
-      points={[
-        [filmStartX, 0, 0],
-        [filmEndX, 0, 0],
-      ]}
-      color="#FFFFFF"
-      lineWidth={2}
-    />
-    <Line
-      points={[
-        [filmStartX, -filmThicknessVisual, 0],
-        [filmEndX, -filmThicknessVisual, 0],
-      ]}
-      color="#FFFFFF"
-      lineWidth={2}
-    />
+      {/* Film boundaries */}
+      <Line
+        points={[
+          [filmStartX, 0, 0],
+          [filmEndX, 0, 0],
+        ]}
+        color="#FFFFFF"
+        lineWidth={2}
+      />
+      <Line
+        points={[
+          [filmStartX, -filmThicknessVisual, 0],
+          [filmEndX, -filmThicknessVisual, 0],
+        ]}
+        color="#FFFFFF"
+        lineWidth={2}
+      />
 
-    <Text position={[filmStartX - 2, 0, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-      AIR (n=1.0)
-    </Text>
-    <Text position={[filmStartX - 2, -filmThicknessVisual / 2, 0]} fontSize={0.6} color="#FFFF00" anchorX="center">
-      FILM (n={refractiveIndex.toFixed(2)})
-    </Text>
-    <Text position={[filmStartX - 2, -filmThicknessVisual - 1, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-      SUBSTRATE
-    </Text>
+      <Text position={[filmStartX - 2, 0, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+        AIR (n=1.0)
+      </Text>
+      <Text position={[filmStartX - 2, -filmThicknessVisual / 2, 0]} fontSize={0.6} color="#FFFF00" anchorX="center">
+        FILM (n={refractiveIndex.toFixed(2)})
+      </Text>
+      <Text position={[filmStartX - 2, -filmThicknessVisual - 1, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+        SUBSTRATE
+      </Text>
 
-    {/* Wavefronts */}
-    {wavefronts.map((points, index) => (
-      <Line key={`wavefront-${index}`} points={points} color={lightColor} lineWidth={1} opacity={0.5} />
-    ))}
+      {/* Wavefronts */}
+      {wavefronts?.map((points: [number, number, number][], index) => (
+        <Line key={`wavefront-${index}`} points={points} color={lightColor} lineWidth={1} opacity={0.5} />
+      ))}
 
-    {/* Light rays */}
-    {showRays && (
-      <group>
-        {/* Incident ray */}
-        <Line points={[[sourcePosition, 0, 0], entryPoint]} color={lightColor} lineWidth={2} opacity={0.7} />
+      {/* Light rays */}
+      {showRays && (
+        <group>
+          {/* Incident ray */}
+          <Line points={[[sourcePosition, 0, 0], entryPoint]} color={lightColor} lineWidth={2} opacity={0.7} />
 
-        {/* Reflected ray from top surface */}
-        <Line
-          points={[
-            entryPoint,
-            [entryPoint[0] - 5 * Math.cos(incidentAngleRad), entryPoint[1] + 5 * Math.sin(incidentAngleRad), 0],
-          ]}
-          color={lightColor}
-          lineWidth={2}
-          opacity={interferenceResult * 0.7}
-        />
+          {/* Reflected ray from top surface */}
+          <Line
+            points={[
+              entryPoint,
+              [entryPoint[0] - 5 * Math.cos(incidentAngleRad), entryPoint[1] + 5 * Math.sin(incidentAngleRad), 0],
+            ]}
+            color={lightColor}
+            lineWidth={2}
+            opacity={interferenceResult * 0.7}
+          />
 
-        {/* Refracted ray in film */}
-        <Line points={[entryPoint, exitPoint]} color={lightColor} lineWidth={2} opacity={0.7} />
+          {/* Refracted ray in film */}
+          <Line points={[entryPoint, exitPoint]} color={lightColor} lineWidth={2} opacity={0.7} />
 
-        {/* Reflected ray from bottom surface */}
-        <Line
-          points={[exitPoint, [exitPoint[0] - 2 * filmThicknessVisual * Math.tan(refractedAngleRad), 0, 0]]}
-          color={lightColor}
-          lineWidth={2}
-          opacity={0.7}
-        />
+          {/* Reflected ray from bottom surface */}
+          <Line
+            points={[exitPoint, [exitPoint[0] - 2 * filmThicknessVisual * Math.tan(refractedAngleRad), 0, 0]]}
+            color={lightColor}
+            lineWidth={2}
+            opacity={0.7}
+          />
 
-        {/* Reflected ray from bottom surface to observer */}
-        <Line
-          points={[
-            [exitPoint[0] - 2 * filmThicknessVisual * Math.tan(refractedAngleRad), 0, 0],
-            [entryPoint[0] - 5 * Math.cos(incidentAngleRad), entryPoint[1] + 5 * Math.sin(incidentAngleRad), 0],
-          ]}
-          color={lightColor}
-          lineWidth={2}
-          opacity={interferenceResult * 0.7}
-        />
+          {/* Reflected ray from bottom surface to observer */}
+          <Line
+            points={[
+              [exitPoint[0] - 2 * filmThicknessVisual * Math.tan(refractedAngleRad), 0, 0],
+              [entryPoint[0] - 5 * Math.cos(incidentAngleRad), entryPoint[1] + 5 * Math.sin(incidentAngleRad), 0],
+            ]}
+            color={lightColor}
+            lineWidth={2}
+            opacity={interferenceResult * 0.7}
+          />
+        </group>
+      )}
+
+      {/* Interference result visualization */}
+      <mesh position={[filmStartX - 6, 0, 0]}>
+        <planeGeometry args={[2, 2]} />
+        <meshStandardMaterial color={lightColor} emissive={lightColor} emissiveIntensity={interferenceResult} />
+      </mesh>
+      <Text position={[filmStartX - 6, -2, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+        REFLECTED LIGHT
+      </Text>
+      <Text
+        position={[filmStartX - 6, -3, 0]}
+        fontSize={0.6}
+        color={isConstructive ? "#00FF00" : isDestructive ? "#FF0000" : "#FFFFFF"}
+        anchorX="center"
+      >
+        {isConstructive ? "CONSTRUCTIVE" : isDestructive ? "DESTRUCTIVE" : "PARTIAL"} INTERFERENCE
+      </Text>
+
+      {/* Phase difference visualization */}
+      {showPhaseDifference && (
+        <group position={[0, -filmThicknessVisual - 5, 0]}>
+          <Text position={[0, 0, 0]} fontSize={0.7} color="#FFFF00" anchorX="center">
+            PHASE ANALYSIS
+          </Text>
+
+          <Text position={[0, -1.5, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+            Optical Path: {opticalPathLength.toFixed(2)} units = {(opticalPathLength / visualWavelength).toFixed(2)}λ
+          </Text>
+
+          <Text position={[0, -3, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+            Path Phase Difference: {((pathPhaseDiff * 180) / Math.PI).toFixed(0)}°
+          </Text>
+
+          <Text position={[0, -4.5, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+            Reflection Phase Shift: {((reflectionPhaseDiff * 180) / Math.PI).toFixed(0)}°
+          </Text>
+
+          <Text
+            position={[0, -6, 0]}
+            fontSize={0.6}
+            color={isConstructive ? "#00FF00" : isDestructive ? "#FF0000" : "#FFFFFF"}
+            anchorX="center"
+          >
+            Total Phase Difference: {((totalPhaseDiff * 180) / Math.PI).toFixed(0)}° (
+            {isConstructive ? "CONSTRUCTIVE" : isDestructive ? "DESTRUCTIVE" : "PARTIAL"})
+          </Text>
+        </group>
+      )}
+
+      {/* Explanation */}
+      <group position={[0, 12, 0]}>
+        <Text position={[0, 0, 0]} fontSize={0.9} color="#FFFFFF" anchorX="center">
+          THIN FILM INTERFERENCE
+        </Text>
+
+        <Text position={[0, -2, 0]} fontSize={0.7} color="#FFFFFF" anchorX="center">
+          Interference between light reflected from top and bottom surfaces
+        </Text>
+
+        <Text position={[0, -4, 0]} fontSize={0.6} color="#FFFF00" anchorX="center">
+          Phase difference depends on: film thickness, refractive index, wavelength, and angle
+        </Text>
+
+        <Text position={[0, -6, 0]} fontSize={0.6} color="#00FF00" anchorX="center">
+          Constructive: 2nt cos(θ) = (m+1/2)λ
+        </Text>
+
+        <Text position={[0, -8, 0]} fontSize={0.6} color="#FF0000" anchorX="center">
+          Destructive: 2nt cos(θ) = mλ
+        </Text>
+
+        <Text position={[0, -10, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
+          Applications: anti-reflection coatings, soap bubbles, oil slicks
+        </Text>
       </group>
-    )}
 
-    {/* Interference result visualization */}
-    <mesh position={[filmStartX - 6, 0, 0]}>
-      <planeGeometry args={[2, 2]} />
-      <meshStandardMaterial color={lightColor} emissive={lightColor} emissiveIntensity={interferenceResult} />
-    </mesh>
-    <Text position={[filmStartX - 6, -2, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-      REFLECTED LIGHT
-    </Text>
-    <Text
-      position={[filmStartX - 6, -3, 0]}
-      fontSize={0.6}
-      color={isConstructive ? "#00FF00" : isDestructive ? "#FF0000" : "#FFFFFF"}
-      anchorX="center"
-    >
-      {isConstructive ? "CONSTRUCTIVE" : isDestructive ? "DESTRUCTIVE" : "PARTIAL"} INTERFERENCE
-    </Text>
-
-    {/* Phase difference visualization */}
-    {showPhaseDifference && (
-      <group position={[0, -filmThicknessVisual - 5, 0]}>
+      {/* Formulas and calculations */}
+      <group position={[0, -filmThicknessVisual - 12, 0]}>
         <Text position={[0, 0, 0]} fontSize={0.7} color="#FFFF00" anchorX="center">
-          PHASE ANALYSIS
+          Wavelength: {wavelength} nm, Film Thickness: {filmThickness} nm, n = {refractiveIndex.toFixed(2)}
         </Text>
 
-        <Text position={[0, -1.5, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-          Optical Path: {opticalPathLength.toFixed(2)} units = {(opticalPathLength / visualWavelength).toFixed(2)}λ
-        </Text>
-
-        <Text position={[0, -3, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-          Path Phase Difference: {((pathPhaseDiff * 180) / Math.PI).toFixed(0)}°
-        </Text>
-
-        <Text position={[0, -4.5, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-          Reflection Phase Shift: {((reflectionPhaseDiff * 180) / Math.PI).toFixed(0)}°
-        </Text>
-
-        <Text
-          position={[0, -6, 0]}
-          fontSize={0.6}
-          color={isConstructive ? "#00FF00" : isDestructive ? "#FF0000" : "#FFFFFF"}
-          anchorX="center"
-        >
-          Total Phase Difference: {((totalPhaseDiff * 180) / Math.PI).toFixed(0)}° (
-          {isConstructive ? "CONSTRUCTIVE" : isDestructive ? "DESTRUCTIVE" : "PARTIAL"})
+        <Text position={[0, -2, 0]} fontSize={0.7} color="#FFFF00" anchorX="center">
+          Optical Path: 2nt cos(θ) = {(2 * refractiveIndex * filmThickness * Math.cos(refractedAngleRad)).toFixed(0)} nm
         </Text>
       </group>
-    )}
-
-    {/* Explanation */}
-    <group position={[0, 12, 0]}>
-      <Text position={[0, 0, 0]} fontSize={0.9} color="#FFFFFF" anchorX="center">
-        THIN FILM INTERFERENCE
-      </Text>
-
-      <Text position={[0, -2, 0]} fontSize={0.7} color="#FFFFFF" anchorX="center">
-        Interference between light reflected from top and bottom surfaces
-      </Text>
-
-      <Text position={[0, -4, 0]} fontSize={0.6} color="#FFFF00" anchorX="center">
-        Phase difference depends on: film thickness, refractive index, wavelength, and angle
-      </Text>
-
-      <Text position={[0, -6, 0]} fontSize={0.6} color="#00FF00" anchorX="center">
-        Constructive: 2nt cos(θ) = (m+1/2)λ
-      </Text>
-
-      <Text position={[0, -8, 0]} fontSize={0.6} color="#FF0000" anchorX="center">
-        Destructive: 2nt cos(θ) = mλ
-      </Text>
-
-      <Text position={[0, -10, 0]} fontSize={0.6} color="#FFFFFF" anchorX="center">
-        Applications: anti-reflection coatings, soap bubbles, oil slicks
-      </Text>
     </group>
-
-    {/* Formulas and calculations */}
-    <group position={[0, -filmThicknessVisual - 12, 0]}>
-      <Text position={[0, 0, 0]} fontSize={0.7} color="#FFFF00" anchorX="center">
-        Wavelength: {wavelength} nm, Film Thickness: {filmThickness} nm, n = {refractiveIndex.toFixed(2)}
-      </Text>
-
-      <Text position={[0, -2, 0]} fontSize={0.7} color="#FFFF00" anchorX="center">
-        Optical Path: 2nt cos(θ) = {(2 * refractiveIndex * filmThickness * Math.cos(refractedAngleRad)).toFixed(0)} nm
-      </Text>
-    </group>
-  </group>
-)
+  )
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
-const normalizedDir = new Vector3().copy(dir).normalize()
-const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
+function ArrowHelper({ 
+  dir, 
+  origin, 
+  length, 
+  color 
+}: { 
+  dir: Vector3; 
+  origin: Vector3; 
+  length: number; 
+  color: string; 
+}) {
+  const normalizedDir = new Vector3().copy(dir).normalize()
+  const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 
-// Calculate arrow head points
-const headLength = Math.min(length * 0.2, 0.3)
-const headWidth = headLength * 0.5
+  // Calculate arrow head points
+  const headLength = Math.min(length * 0.2, 0.3)
+  const headWidth = headLength * 0.5
 
-const arrowDir = new Vector3().copy(normalizedDir)
-const sideDir = new Vector3(arrowDir.y, -arrowDir.x, 0).normalize()
-if (Math.abs(arrowDir.z) > 0.9) {
-  sideDir.set(1, 0, 0)
-}
+  const arrowDir = new Vector3().copy(normalizedDir)
+  const sideDir = new Vector3(arrowDir.y, -arrowDir.x, 0).normalize()
+  if (Math.abs(arrowDir.z) > 0.9) {
+    sideDir.set(1, 0, 0)
+  }
 
-const headBase = new Vector3().copy(end).sub(arrowDir.multiplyScalar(headLength))
-const side1 = new Vector3().copy(headBase).add(sideDir.clone().multiplyScalar(headWidth))
-const side2 = new Vector3().copy(headBase).add(sideDir.clone().multiplyScalar(-headWidth))
+  const headBase = new Vector3().copy(end).sub(arrowDir.multiplyScalar(headLength))
+  const side1 = new Vector3().copy(headBase).add(sideDir.clone().multiplyScalar(headWidth))
+  const side2 = new Vector3().copy(headBase).add(sideDir.clone().multiplyScalar(-headWidth))
 
-return (
-  <group>
-    {/* Arrow shaft */}
-    <Line
-      points={[
-        [origin.x, origin.y, origin.z],
-        [end.x, end.y, end.z],
-      ]}
-      color={color}
-      lineWidth={2}
-    />
+  return (
+    <group>
+      {/* Arrow shaft */}
+      <Line
+        points={[
+          [origin.x, origin.y, origin.z],
+          [end.x, end.y, end.z],
+        ]}
+        color={color}
+        lineWidth={2}
+      />
 
-    {/* Arrow head */}
-    <Line
-      points={[
-        [end.x, end.y, end.z],
-        [side1.x, side1.y, side1.z],
-      ]}
-      color={color}
-      lineWidth={2}
-    />
-    <Line
-      points={[
-        [end.x, end.y, end.z],
-        [side2.x, side2.y, side2.z],
-      ]}
-      color={color}
-      lineWidth={2}
-    />
-    <Line
-      points={[
-        [side1.x, side1.y, side1.z],
-        [side2.x, side2.y, side2.z],
-      ]}
-      color={color}
-      lineWidth={2}
-    />
-  </group>
-)
+      {/* Arrow head */}
+      <Line
+        points={[
+          [end.x, end.y, end.z],
+          [side1.x, side1.y, side1.z],
+        ]}
+        color={color}
+        lineWidth={2}
+      />
+      <Line
+        points={[
+          [end.x, end.y, end.z],
+          [side2.x, side2.y, side2.z],
+        ]}
+        color={color}
+        lineWidth={2}
+      />
+      <Line
+        points={[
+          [side1.x, side1.y, side1.z],
+          [side2.x, side2.y, side2.z],
+        ]}
+        color={color}
+        lineWidth={2}
+      />
+    </group>
+  )
 }
