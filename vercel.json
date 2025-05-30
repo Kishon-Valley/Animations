@@ -6,5 +6,7 @@
   "outputDirectory": ".next",
   "routes": [
     { "src": "/(.*)", "dest": "/" }
-  ]
+  ],
+  "crons": [],
+  "nodeVersion": "18.x"
 }
