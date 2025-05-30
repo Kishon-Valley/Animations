@@ -1,49 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Text, Line, PerspectiveCamera } from "@react-three/drei"
-
-interface DampedOscillationSceneProps {
-  amplitude: number;
-  frequency: number;
-  dampingRatio: number;
-  dampingType: "underdamped" | "critically" | "overdamped";
-  paused: boolean;
-}
-
-interface PositionPoint {
-  time: number;
-  position: number;
-}
-
-interface EnvelopePoint {
-  time: number;
-  value: number;
-}
-
-interface SpringMassDamperSystemProps {
-  position: number;
-  dampingRatio: number;
-}
-
-interface PositionTimeGraphProps {
-  positions: PositionPoint[];
-  envelopePoints: EnvelopePoint[];
-  negEnvelopePoints: EnvelopePoint[];
-  amplitude: number;
-  dampingType: "underdamped" | "critically" | "overdamped";
-}
-
-interface LabelsProps {
-  dampingType: "underdamped" | "critically" | "overdamped";
-}
-
-interface EquationsProps {
-  dampingRatio: number;
-  omega0: number;
-  omegaD: number;
-}
+import { useState } from "react"
 
 export default function DampedOscillations() {
   const [amplitude, setAmplitude] = useState(3)
