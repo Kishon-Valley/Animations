@@ -11,7 +11,7 @@ const nextConfig = {
   },
   // Simplify output for better compatibility
   swcMinify: true,
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // Handle Three.js and its dependencies
     config.resolve.alias = {
       ...config.resolve.alias,
