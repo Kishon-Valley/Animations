@@ -9,8 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Simplify output for better compatibility
+  // Ensure CSS processing works correctly
   swcMinify: true,
+  // Enable CSS processing
+  optimizeCss: true,
   webpack: (config, { isServer }) => {
     // Handle Three.js and its dependencies
     config.resolve.alias = {
