@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm install @react-three/fiber @react-three/drei three --legacy-peer-deps",
+    "prebuild": "npm install three @react-three/fiber @react-three/drei --legacy-peer-deps",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
