@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
@@ -57,17 +57,6 @@ const categories = [
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-
-  // Force client-side rendering to ensure styles are applied
-  const [isClient, setIsClient] = useState(false)
-  
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return null // Return nothing during SSR
-  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-8">
