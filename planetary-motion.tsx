@@ -5,6 +5,29 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Line, PerspectiveCamera, Stars } from "@react-three/drei"
 import { MathUtils } from "three"
 
+interface Planet {
+  name: string;
+  color: string;
+  radius: number;
+  distance: number;
+  orbitPeriod: number;
+  rotationPeriod: number;
+  orbitEccentricity: number;
+  orbitTilt: number;
+  hasMoon?: boolean;
+  moonDistance?: number;
+  moonRadius?: number;
+  moonOrbitPeriod?: number;
+  hasRings?: boolean;
+  satellites?: Array<{
+    name: string;
+    distance: number;
+    orbitPeriod: number;
+    color: string;
+    radius: number;
+  }>;
+}
+
 export default function PlanetaryMotion() {
   const [showOrbits, setShowOrbits] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
@@ -113,7 +136,19 @@ export default function PlanetaryMotion() {
   )
 }
 
-function PlanetaryScene({ showOrbits, showLabels, timeScale, selectedView, paused }) {
+function PlanetaryScene({
+  showOrbits,
+  showLabels,
+  timeScale,
+  selectedView,
+  paused,
+}: {
+  showOrbits: boolean;
+  showLabels: boolean;
+  timeScale: number;
+  selectedView: string;
+  paused: boolean;
+}) {
   // Use a ref for time to avoid re-renders
   const timeRef = useRef(0)
   // Use state for the current scene time that will be passed to children
@@ -207,7 +242,7 @@ function PlanetaryScene({ showOrbits, showLabels, timeScale, selectedView, pause
         time={sceneTime}
         showOrbits={showOrbits}
         showLabels={showLabels}
-        earthData={planets.find((p) => p.name === "Earth")}
+        earthData={planets.find((p) => p.name === "Earth")!}
       />
     )
   } else if (selectedView === "satellite") {
@@ -216,7 +251,7 @@ function PlanetaryScene({ showOrbits, showLabels, timeScale, selectedView, pause
         time={sceneTime}
         showOrbits={showOrbits}
         showLabels={showLabels}
-        earthData={planets.find((p) => p.name === "Earth")}
+        earthData={planets.find((p) => p.name === "Earth")!}
       />
     )
   } else {
@@ -224,7 +259,17 @@ function PlanetaryScene({ showOrbits, showLabels, timeScale, selectedView, pause
   }
 }
 
-function SolarSystem({ time, planets, showOrbits, showLabels }) {
+function SolarSystem({
+  time,
+  planets,
+  showOrbits,
+  showLabels,
+}: {
+  time: number;
+  planets: any[];
+  showOrbits: boolean;
+  showLabels: boolean;
+}) {
   // Force update with time
   const [_, forceUpdate] = useState(0)
   useFrame(() => {
@@ -268,7 +313,17 @@ function SolarSystem({ time, planets, showOrbits, showLabels }) {
   )
 }
 
-function EarthMoonSystem({ time, showOrbits, showLabels, earthData }) {
+function EarthMoonSystem({ 
+  time, 
+  showOrbits, 
+  showLabels, 
+  earthData 
+}: { 
+  time: number; 
+  showOrbits: boolean; 
+  showLabels: boolean; 
+  earthData: Planet; 
+}) {
   // Force update with time
   const [_, forceUpdate] = useState(0)
   useFrame(() => {
@@ -289,15 +344,15 @@ function EarthMoonSystem({ time, showOrbits, showLabels, earthData }) {
 
       {/* Moon orbit */}
       {showOrbits && (
-        <EllipticalOrbit semiMajorAxis={earthData.moonDistance} eccentricity={0.055} color="#FFFFFF" tilt={5.1} />
+        <EllipticalOrbit semiMajorAxis={earthData.moonDistance!} eccentricity={0.055} color="#FFFFFF" tilt={5.1} />
       )}
 
       {/* Moon */}
       <CelestialBody
         name="Moon"
-        radius={earthData.moonRadius}
-        distance={earthData.moonDistance}
-        orbitPeriod={earthData.moonOrbitPeriod}
+        radius={earthData.moonRadius!}
+        distance={earthData.moonDistance!}
+        orbitPeriod={earthData.moonOrbitPeriod!}
         orbitEccentricity={0.055}
         orbitTilt={5.1}
         color="#CCCCCC"
@@ -323,7 +378,17 @@ function EarthMoonSystem({ time, showOrbits, showLabels, earthData }) {
   )
 }
 
-function SatelliteSystem({ time, showOrbits, showLabels, earthData }) {
+function SatelliteSystem({ 
+  time, 
+  showOrbits, 
+  showLabels, 
+  earthData 
+}: { 
+  time: number; 
+  showOrbits: boolean; 
+  showLabels: boolean; 
+  earthData: Planet; 
+}) {
   // Force update with time
   const [_, forceUpdate] = useState(0)
   useFrame(() => {
@@ -406,7 +471,17 @@ function SatelliteSystem({ time, showOrbits, showLabels, earthData }) {
   )
 }
 
-function Planet({ planet, time, showOrbit, showLabel }) {
+function Planet({ 
+  planet, 
+  time, 
+  showOrbit, 
+  showLabel 
+}: { 
+  planet: Planet; 
+  time: number; 
+  showOrbit: boolean; 
+  showLabel: boolean; 
+}) {
   // Force component to update with time changes
   const [_, forceUpdate] = useState(0)
   useFrame(() => {
@@ -460,9 +535,9 @@ function Planet({ planet, time, showOrbit, showLabel }) {
       {planet.hasMoon && (
         <CelestialBody
           name="Moon"
-          radius={planet.moonRadius}
-          distance={planet.moonDistance}
-          orbitPeriod={planet.moonOrbitPeriod}
+          radius={planet.moonRadius!}
+          distance={planet.moonDistance!}
+          orbitPeriod={planet.moonOrbitPeriod!}
           orbitEccentricity={0.055}
           orbitTilt={5.1}
           color="#CCCCCC"
@@ -504,6 +579,17 @@ function CelestialBody({
   time,
   showLabel,
   parentBody,
+}: {
+  name: string;
+  radius: number;
+  distance: number;
+  orbitPeriod: number;
+  orbitEccentricity: number;
+  orbitTilt: number;
+  color: string;
+  time: number;
+  showLabel: boolean;
+  parentBody: [number, number, number] | null;
 }) {
   // Force component to update with time changes
   const [_, forceUpdate] = useState(0)
@@ -514,8 +600,12 @@ function CelestialBody({
   const relativePosition = calculateOrbitalPosition(distance, orbitPeriod, orbitEccentricity, orbitTilt, time)
 
   // If there's a parent body, add its position
-  const position = parentBody
-    ? [relativePosition[0] + parentBody[0], relativePosition[1] + parentBody[1], relativePosition[2] + parentBody[2]]
+  const position: [number, number, number] = parentBody
+    ? [
+        relativePosition[0] + parentBody[0],
+        relativePosition[1] + parentBody[1],
+        relativePosition[2] + parentBody[2],
+      ]
     : relativePosition
 
   return (
@@ -536,9 +626,19 @@ function CelestialBody({
   )
 }
 
-function EllipticalOrbit({ semiMajorAxis, eccentricity, color, tilt }) {
+function EllipticalOrbit({ 
+  semiMajorAxis, 
+  eccentricity, 
+  color, 
+  tilt 
+}: { 
+  semiMajorAxis: number; 
+  eccentricity: number; 
+  color: string; 
+  tilt: number; 
+}) {
   const segments = 64
-  const points = []
+  const points: [number, number, number][] = []
 
   // Generate points for an elliptical orbit
   for (let i = 0; i <= segments; i++) {
@@ -562,7 +662,13 @@ function EllipticalOrbit({ semiMajorAxis, eccentricity, color, tilt }) {
 }
 
 // Helper function to calculate orbital position
-function calculateOrbitalPosition(semiMajorAxis, orbitPeriod, eccentricity, tilt, time) {
+function calculateOrbitalPosition(
+  semiMajorAxis: number,
+  orbitPeriod: number,
+  eccentricity: number,
+  tilt: number,
+  time: number
+): [number, number, number] {
   // Calculate angle based on time and period
   const angle = (time / orbitPeriod) * Math.PI * 2
 
@@ -576,5 +682,5 @@ function calculateOrbitalPosition(semiMajorAxis, orbitPeriod, eccentricity, tilt
   const zTilted = y * Math.cos(tiltRad)
   const yTilted = y * Math.sin(tiltRad)
 
-  return [xTilted, yTilted, zTilted]
+  return [xTilted, yTilted, zTilted] as [number, number, number]
 }

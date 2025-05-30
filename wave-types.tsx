@@ -5,6 +5,14 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Text, Line, PerspectiveCamera } from "@react-three/drei"
 import { Vector3 } from "three"
 
+interface Particle {
+  restX: number;
+  x: number;
+  y: number;
+  z: number;
+  displacement: number;
+}
+
 export default function WaveTypes() {
   const [waveType, setWaveType] = useState("transverse")
   const [amplitude, setAmplitude] = useState(1)
@@ -143,7 +151,21 @@ export default function WaveTypes() {
   )
 }
 
-function WaveScene({ waveType, amplitude, frequency, wavelength, damping, paused }) {
+function WaveScene({ 
+  waveType, 
+  amplitude, 
+  frequency, 
+  wavelength, 
+  damping, 
+  paused 
+}: { 
+  waveType: string; 
+  amplitude: number; 
+  frequency: number; 
+  wavelength: number; 
+  damping: number; 
+  paused: boolean; 
+}) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
 
@@ -252,10 +274,22 @@ function CoordinateSystem() {
   )
 }
 
-function TransverseWave({ amplitude, frequency, wavelength, damping, time }) {
+function TransverseWave({ 
+  amplitude, 
+  frequency, 
+  wavelength, 
+  damping, 
+  time 
+}: { 
+  amplitude: number; 
+  frequency: number; 
+  wavelength: number; 
+  damping: number; 
+  time: number; 
+}) {
   const numPoints = 100
   const waveLength = 20
-  const wavePoints = []
+  const wavePoints: [number, number, number][] = []
   const particlePositions = []
   const numParticles = 20
 
@@ -274,7 +308,7 @@ function TransverseWave({ amplitude, frequency, wavelength, damping, time }) {
     // Calculate wave displacement
     const y = amplitude * dampingFactor * Math.sin(k * x - omega * time)
 
-    wavePoints.push([x, y, 0])
+    wavePoints.push([x, y, 0] as [number, number, number])
   }
 
   // Generate particle positions
@@ -287,7 +321,7 @@ function TransverseWave({ amplitude, frequency, wavelength, damping, time }) {
     // Calculate wave displacement
     const y = amplitude * dampingFactor * Math.sin(k * x - omega * time)
 
-    particlePositions.push([x, y, 0])
+    particlePositions.push([x, y, 0] as [number, number, number])
   }
 
   return (
@@ -325,12 +359,26 @@ function TransverseWave({ amplitude, frequency, wavelength, damping, time }) {
   )
 }
 
-function LongitudinalWave({ amplitude, frequency, wavelength, damping, time }) {
+function LongitudinalWave({ 
+  amplitude, 
+  frequency, 
+  wavelength, 
+  damping, 
+  time 
+}: { 
+  amplitude: number; 
+  frequency: number; 
+  wavelength: number; 
+  damping: number; 
+  time: number; 
+}) {
   const numPoints = 100
   const waveLength = 20
+  const wavePoints: [number, number, number][] = []
+  const particlePositions: Particle[] = []
+  const particleTrails = []
   const numParticles = 50
   const particleSpacing = waveLength / numParticles
-  const particlePositions = []
 
   // Angular frequency
   const omega = 2 * Math.PI * frequency
@@ -354,7 +402,7 @@ function LongitudinalWave({ amplitude, frequency, wavelength, damping, time }) {
       y: 0,
       z: 0,
       displacement: displacement,
-    })
+    } as Particle)
   }
 
   // Calculate density regions for visualization
@@ -383,7 +431,7 @@ function LongitudinalWave({ amplitude, frequency, wavelength, damping, time }) {
       width: actualSpacing,
       color: `rgb(${r * 255},${g * 255},${b * 255})`,
       density: relativeDensity,
-    })
+    } as { x: number; width: number; color: string; density: number })
   }
 
   return (
@@ -467,10 +515,22 @@ function LongitudinalWave({ amplitude, frequency, wavelength, damping, time }) {
   )
 }
 
-function SurfaceWave({ amplitude, frequency, wavelength, damping, time }) {
+function SurfaceWave({ 
+  amplitude, 
+  frequency, 
+  wavelength, 
+  damping, 
+  time 
+}: { 
+  amplitude: number; 
+  frequency: number; 
+  wavelength: number; 
+  damping: number; 
+  time: number; 
+}) {
   const numPoints = 100
   const waveLength = 20
-  const wavePoints = []
+  const wavePoints: [number, number, number][] = []
   const particlePositions = []
   const particleTrails = []
   const numParticles = 15
@@ -490,7 +550,7 @@ function SurfaceWave({ amplitude, frequency, wavelength, damping, time }) {
     // Calculate wave displacement
     const y = amplitude * dampingFactor * Math.sin(k * x - omega * time)
 
-    wavePoints.push([x, y, 0])
+    wavePoints.push([x, y, 0] as [number, number, number])
   }
 
   // Generate particle positions and trails
@@ -506,15 +566,15 @@ function SurfaceWave({ amplitude, frequency, wavelength, damping, time }) {
     // Calculate horizontal displacement (smaller than vertical)
     const xDisplacement = -0.3 * amplitude * dampingFactor * Math.cos(k * x - omega * time)
 
-    particlePositions.push([x + xDisplacement, y, 0])
+    particlePositions.push([x + xDisplacement, y, 0] as [number, number, number])
 
     // Generate elliptical trail for each particle
-    const trailPoints = []
+    const trailPoints: [number, number, number][] = []
     for (let j = 0; j <= 20; j++) {
       const angle = (j / 20) * Math.PI * 2
       const trailX = x + xDisplacement * Math.cos(angle)
       const trailY = y + amplitude * dampingFactor * Math.sin(angle)
-      trailPoints.push([trailX, trailY, 0])
+      trailPoints.push([trailX, trailY, 0] as [number, number, number])
     }
     particleTrails.push(trailPoints)
   }
@@ -552,10 +612,20 @@ function SurfaceWave({ amplitude, frequency, wavelength, damping, time }) {
   )
 }
 
-function StandingWave({ amplitude, frequency, wavelength, time }) {
+function StandingWave({ 
+  amplitude, 
+  frequency, 
+  wavelength, 
+  time 
+}: { 
+  amplitude: number; 
+  frequency: number; 
+  wavelength: number; 
+  time: number; 
+}) {
   const numPoints = 100
   const waveLength = 20
-  const wavePoints = []
+  const wavePoints: [number, number, number][] = []
   const particlePositions = []
   const numParticles = 20
 
@@ -571,7 +641,7 @@ function StandingWave({ amplitude, frequency, wavelength, time }) {
     // Standing wave equation: A * sin(kx) * cos(ωt)
     const y = amplitude * Math.sin(k * x) * Math.cos(omega * time)
 
-    wavePoints.push([x, y, 0])
+    wavePoints.push([x, y, 0] as [number, number, number])
   }
 
   // Generate particle positions
@@ -581,7 +651,7 @@ function StandingWave({ amplitude, frequency, wavelength, time }) {
     // Standing wave equation for particles
     const y = amplitude * Math.sin(k * x) * Math.cos(omega * time)
 
-    particlePositions.push([x, y, 0])
+    particlePositions.push([x, y, 0] as [number, number, number])
   }
 
   // Calculate node positions
@@ -680,10 +750,10 @@ function StandingWave({ amplitude, frequency, wavelength, time }) {
   )
 }
 
-function WaveDescription({ waveType }) {
+function WaveDescription({ waveType }: { waveType: string }) {
   let title = ""
-  let description = []
-  let examples = []
+  let description: string[] = []
+  let examples: string[] = []
 
   switch (waveType) {
     case "transverse":
@@ -757,7 +827,7 @@ function WaveDescription({ waveType }) {
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ dir, origin, length, color }: { dir: Vector3; origin: Vector3; length: number; color: string }) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 

@@ -39,7 +39,7 @@ function Scene() {
       <CircularPlane rotationAngle={rotationAngle} />
 
       {/* Angular Displacement Vector */}
-      <AngularVector rotationAngle={rotationAngle} />
+      <AngularVector />
 
       {/* Labels */}
       <Labels />
@@ -94,14 +94,14 @@ function CoordinateSystem() {
   )
 }
 
-function CircularPlane({ rotationAngle }) {
+function CircularPlane({ rotationAngle }: { rotationAngle: number }) {
   const radius = 3
   const segments = 64
-  const points = []
+  const points: [number, number, number][] = []
 
   for (let i = 0; i <= segments; i++) {
     const theta = (i / segments) * Math.PI * 2
-    points.push([radius * Math.cos(theta), radius * Math.sin(theta), 0])
+    points.push([radius * Math.cos(theta), radius * Math.sin(theta), 0] as [number, number, number])
   }
 
   // Moving object along the circle
@@ -148,32 +148,32 @@ function CircularPlane({ rotationAngle }) {
   )
 }
 
-function RotationIndicator({ radius }) {
+function RotationIndicator({ radius }: { radius: number }) {
   const segments = 16
   const startAngle = -Math.PI / 4
   const endAngle = Math.PI / 4
-  const points = []
+  const points: [number, number, number][] = []
 
   for (let i = 0; i <= segments; i++) {
     const theta = startAngle + (i / segments) * (endAngle - startAngle)
-    points.push([radius * Math.cos(theta), radius * Math.sin(theta), 0])
+    points.push([radius * Math.cos(theta), radius * Math.sin(theta), 0] as [number, number, number])
   }
 
   // Add arrowhead
-  const lastPoint = points[points.length - 1]
-  const secondLastPoint = points[points.length - 2]
+  const lastPoint = points[points.length - 1] as [number, number, number]
+  const secondLastPoint = points[points.length - 2] as [number, number, number]
   const direction = new Vector3(lastPoint[0] - secondLastPoint[0], lastPoint[1] - secondLastPoint[1], 0).normalize()
 
   const perpendicular = new Vector3(-direction.y, direction.x, 0)
   const arrowSize = 0.2
 
-  const arrowPoint1 = [
+  const arrowPoint1: [number, number, number] = [
     lastPoint[0] - direction.x * arrowSize + perpendicular.x * arrowSize,
     lastPoint[1] - direction.y * arrowSize + perpendicular.y * arrowSize,
     0,
   ]
 
-  const arrowPoint2 = [
+  const arrowPoint2: [number, number, number] = [
     lastPoint[0] - direction.x * arrowSize - perpendicular.x * arrowSize,
     lastPoint[1] - direction.y * arrowSize - perpendicular.y * arrowSize,
     0,
@@ -188,7 +188,7 @@ function RotationIndicator({ radius }) {
   )
 }
 
-function AngularVector({ rotationAngle }) {
+function AngularVector() {
   // Angular displacement vector (along z-axis)
   return <ArrowHelper dir={new Vector3(0, 0, 1)} origin={new Vector3(0, 0, 0)} length={2} color="#00ffff" />
 }
@@ -215,7 +215,17 @@ function Labels() {
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ 
+  dir, 
+  origin, 
+  length, 
+  color 
+}: { 
+  dir: Vector3; 
+  origin: Vector3; 
+  length: number; 
+  color: string; 
+}) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 

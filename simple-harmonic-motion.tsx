@@ -86,7 +86,17 @@ export default function SimpleHarmonicMotion() {
   )
 }
 
-function Scene({ amplitude, frequency, damping, paused }) {
+function Scene({ 
+  amplitude, 
+  frequency, 
+  damping, 
+  paused 
+}: { 
+  amplitude: number; 
+  frequency: number; 
+  damping: number; 
+  paused: boolean; 
+}) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
   const positionsRef = useRef([0]) // Use ref instead of state for positions
@@ -178,11 +188,11 @@ function CoordinateSystem() {
   )
 }
 
-function SpringMassSystem({ position }) {
+function SpringMassSystem({ position }: { position: number }) {
   const springLength = 5
   const restPosition = -4
   const numCoils = 10
-  const springPoints = []
+  const springPoints: [number, number, number][] = []
 
   // Generate spring points
   const startX = restPosition
@@ -194,7 +204,7 @@ function SpringMassSystem({ position }) {
     const t = i / (numCoils * 10)
     const x = startX + (endX - startX) * t
     const y = amplitude * Math.sin(t * Math.PI * 2 * numCoils)
-    springPoints.push([x, y, 0])
+    springPoints.push([x, y, 0] as [number, number, number])
   }
 
   return (
@@ -232,7 +242,7 @@ function SpringMassSystem({ position }) {
   )
 }
 
-function ForceVectors({ position, springForce }) {
+function ForceVectors({ position, springForce }: { position: number; springForce: number }) {
   // Ensure force vector has a minimum length for visibility
   const forceLength = Math.max(0.1, Math.abs(springForce))
 
@@ -252,7 +262,7 @@ function ForceVectors({ position, springForce }) {
   )
 }
 
-function PositionTimeGraph({ positions, amplitude }) {
+function PositionTimeGraph({ positions, amplitude }: { positions: number[]; amplitude: number }) {
   const graphWidth = 10
   const graphHeight = 4
   const graphX = 0
@@ -264,10 +274,10 @@ function PositionTimeGraph({ positions, amplitude }) {
   }
 
   // Generate graph points
-  const graphPoints = positions.map((pos, i) => {
+  const graphPoints: [number, number, number][] = positions.map((pos: number, i: number) => {
     const x = graphX - graphWidth / 2 + (i / Math.max(1, positions.length - 1)) * graphWidth
     const y = graphY + pos
-    return [x, y, 0]
+    return [x, y, 0] as [number, number, number]
   })
 
   return (
@@ -325,7 +335,15 @@ function PositionTimeGraph({ positions, amplitude }) {
   )
 }
 
-function VelocityAcceleration({ position, velocity, acceleration }) {
+function VelocityAcceleration({ 
+  position, 
+  velocity, 
+  acceleration 
+}: { 
+  position: number; 
+  velocity: number; 
+  acceleration: number; 
+}) {
   // Ensure vectors have minimum lengths for visibility
   const velocityLength = Math.max(0.1, Math.abs(velocity))
   const accelerationLength = Math.max(0.1, Math.abs(acceleration))
@@ -369,7 +387,15 @@ function Labels() {
   )
 }
 
-function Equations({ position, velocity, acceleration }) {
+function Equations({ 
+  position, 
+  velocity, 
+  acceleration 
+}: { 
+  position: number; 
+  velocity: number; 
+  acceleration: number; 
+}) {
   return (
     <group position={[0, 7, 0]}>
       <Text position={[0, 0, 0]} fontSize={0.4} color="#ffffff">
@@ -396,7 +422,17 @@ function Equations({ position, velocity, acceleration }) {
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+function ArrowHelper({ 
+  dir, 
+  origin, 
+  length, 
+  color 
+}: { 
+  dir: Vector3; 
+  origin: Vector3; 
+  length: number; 
+  color: string; 
+}) {
   // Ensure we have a valid direction vector
   if (!dir || isNaN(dir.x) || isNaN(dir.y) || isNaN(dir.z)) {
     return null

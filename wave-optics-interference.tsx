@@ -385,72 +385,75 @@ function DoubleSlit({
   }, [screenPositionX, slitPosition, slit1Y, slit2Y, visualWavelength, screenHeight, numScreenPoints])
 
   // Generate wavefronts
-  const wavefronts = useMemo(() => {
-    if (!showWavefronts) return []
+  const wavefronts = useMemo(
+    () => {
+      if (!showWavefronts) return []
 
-    const fronts = []
-    const numWavefronts = 15
-    const maxRadius = 20
+      const fronts = []
+      const numWavefronts = 15
+      const maxRadius = 20
 
-    // Incident wavefronts (from source to slits)
-    for (let i = 0; i < numWavefronts; i++) {
-      const radius = (i * visualWavelength + time * 5) % maxRadius
-      if (radius > 0.5) {
-        const points: [number, number, number][] = []
-        for (let j = 0; j <= 32; j++) {
-          const angle = (j / 32) * Math.PI
-          const x = sourcePosition + radius * Math.cos(angle)
-          const y = radius * Math.sin(angle)
-          if (x <= slitPosition) {
-            points.push([x, y, 0])
+      // Incident wavefronts (from source to slits)
+      for (let i = 0; i < numWavefronts; i++) {
+        const radius = (i * visualWavelength + time * 5) % maxRadius
+        if (radius > 0.5) {
+          const points: [number, number, number][] = []
+          for (let j = 0; j <= 32; j++) {
+            const angle = (j / 32) * Math.PI
+            const x = sourcePosition + radius * Math.cos(angle)
+            const y = radius * Math.sin(angle)
+            if (x <= slitPosition) {
+              points.push([x, y, 0])
+            }
+          }
+          if (points.length > 0) {
+            fronts.push(points)
           }
         }
-        if (points.length > 0) {
-          fronts.push(points)
-        }
       }
-    }
 
-    // Wavefronts from slit 1
-    for (let i = 0; i < numWavefronts; i++) {
-      const radius = (i * visualWavelength + time * 5) % maxRadius
-      if (radius > 0.5) {
-        const points: [number, number, number][] = []
-        for (let j = 0; j <= 32; j++) {
-          const angle = (j / 32) * Math.PI - Math.PI / 2
-          const x = slitPosition + radius * Math.cos(angle)
-          const y = slit1Y + radius * Math.sin(angle)
-          if (x >= slitPosition && x <= screenPositionX) {
-            points.push([x, y, 0])
+      // Wavefronts from slit 1
+      for (let i = 0; i < numWavefronts; i++) {
+        const radius = (i * visualWavelength + time * 5) % maxRadius
+        if (radius > 0.5) {
+          const points: [number, number, number][] = []
+          for (let j = 0; j <= 32; j++) {
+            const angle = (j / 32) * Math.PI - Math.PI / 2
+            const x = slitPosition + radius * Math.cos(angle)
+            const y = slit1Y + radius * Math.sin(angle)
+            if (x >= slitPosition && x <= screenPositionX) {
+              points.push([x, y, 0])
+            }
+          }
+          if (points.length > 0) {
+            fronts.push(points)
           }
         }
-        if (points.length > 0) {
-          fronts.push(points)
-        }
       }
-    }
 
-    // Wavefronts from slit 2
-    for (let i = 0; i < numWavefronts; i++) {
-      const radius = (i * visualWavelength + time * 5) % maxRadius
-      if (radius > 0.5) {
-        const points: [number, number, number][] = []
-        for (let j = 0; j <= 32; j++) {
-          const angle = (j / 32) * Math.PI - Math.PI / 2
-          const x = slitPosition + radius * Math.cos(angle)
-          const y = slit2Y + radius * Math.sin(angle)
-          if (x >= slitPosition && x <= screenPositionX) {
-            points.push([x, y, 0])
+      // Wavefronts from slit 2
+      for (let i = 0; i < numWavefronts; i++) {
+        const radius = (i * visualWavelength + time * 5) % maxRadius
+        if (radius > 0.5) {
+          const points: [number, number, number][] = []
+          for (let j = 0; j <= 32; j++) {
+            const angle = (j / 32) * Math.PI - Math.PI / 2
+            const x = slitPosition + radius * Math.cos(angle)
+            const y = slit2Y + radius * Math.sin(angle)
+            if (x >= slitPosition && x <= screenPositionX) {
+              points.push([x, y, 0])
+            }
+          }
+          if (points.length > 0) {
+            fronts.push(points)
           }
         }
-        if (points.length > 0) {
-          fronts.push(points)
-        }
       }
-    }
 
-    return fronts
-  }, [showWavefronts, visualWavelength, time, sourcePosition, screenDistance])
+      return fronts
+    },
+    [showWavefronts, visualWavelength, time, sourcePosition, screenDistance]
+  )
 
   // Sample points on the screen for ray visualization
   const samplePoints = useMemo(() => {
@@ -713,93 +716,94 @@ function ThinFilm({
   const interferenceResult = Math.pow(Math.cos(totalPhaseDiff / 2), 2)
 
   // Generate wavefronts
-  const wavefronts = useMemo(() => {
-    if (!showWavefronts) return []
+  const wavefronts = useMemo(
+    () => {
+      if (!showWavefronts) return []
 
-    const fronts = []
-    const numWavefronts = 10
-    const maxRadius = 15
+      const fronts = []
+      const numWavefronts = 10
+      const maxRadius = 15
 
-    // Incident wavefronts (from source to film)
-    for (let i = 0; i < numWavefronts; i++) {
-      const radius = (i * visualWavelength + time * 5) % maxRadius
-      if (radius > 0.5) {
-        const points: [number, number, number][] = []
-        for (let j = 0; j <= 32; j++) {
-          const angle = (j / 32) * Math.PI - Math.PI / 2 + incidentAngleRad
-          const x = sourcePosition + radius * Math.cos(angle)
-          const y = radius * Math.sin(angle)
-          if (x <= filmStartX) {
-            points.push([x, y, 0])
+      // Incident wavefronts (from source to film)
+      for (let i = 0; i < numWavefronts; i++) {
+        const radius = (i * visualWavelength + time * 5) % maxRadius
+        if (radius > 0.5) {
+          const points: [number, number, number][] = []
+          for (let j = 0; j <= 32; j++) {
+            const angle = (j / 32) * Math.PI - Math.PI / 2 + incidentAngleRad
+            const x = sourcePosition + radius * Math.cos(angle)
+            const y = radius * Math.sin(angle)
+            if (x <= filmStartX) {
+              points.push([x, y, 0])
+            }
+          }
+          if (points.length > 0) {
+            fronts.push(points)
           }
         }
-        if (points.length > 0) {
-          fronts.push(points)
-        }
       }
-    }
 
-    // Wavefronts in the film
-    for (let i = 0; i < numWavefronts; i++) {
-      const radius = ((i * visualWavelength) / refractiveIndex + time * 5) % maxRadius
-      if (radius > 0.5) {
-        const points: [number, number, number][] = []
-        for (let j = 0; j <= 32; j++) {
-          const angle = (j / 32) * Math.PI - Math.PI / 2 + refractedAngleRad
-          const x = entryPoint[0] + radius * Math.cos(angle)
-          const y = entryPoint[1] + radius * Math.sin(angle)
-          if (x >= filmStartX && x <= filmEndX && y <= 0 && y >= -filmThicknessVisual) {
-            points.push([x, y, 0])
+      // Wavefronts in the film
+      for (let i = 0; i < numWavefronts; i++) {
+        const radius = ((i * visualWavelength) / refractiveIndex + time * 5) % maxRadius
+        if (radius > 0.5) {
+          const points: [number, number, number][] = []
+          for (let j = 0; j <= 32; j++) {
+            const angle = (j / 32) * Math.PI - Math.PI / 2 + refractedAngleRad
+            const x = entryPoint[0] + radius * Math.cos(angle)
+            const y = entryPoint[1] + radius * Math.sin(angle)
+            if (x >= filmStartX && x <= filmEndX && y <= 0 && y >= -filmThicknessVisual) {
+              points.push([x, y, 0])
+            }
+          }
+          if (points.length > 0) {
+            fronts.push(points)
           }
         }
-        if (points.length > 0) {
-          fronts.push(points)
-        }
       }
-    }
 
-    // Reflected wavefronts from top surface
-    for (let i = 0; i < numWavefronts; i++) {
-      const radius = (i * visualWavelength + time * 5) % maxRadius
-      if (radius >  i++) {
-      const radius = (i * visualWavelength + time * 5) % maxRadius
-      if (radius > 0.5) {
-        const points: [number, number, number][] = []
-        for (let j = 0; j <= 32; j++) {
-          const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
-          const x = entryPoint[0] + radius * Math.cos(angle)
-          const y = entryPoint[1] + radius * Math.sin(angle)
-          if (x <= filmStartX) {
-            points.push([x, y, 0])
+      // Reflected wavefronts from top surface
+      for (let i = 0; i < numWavefronts; i++) {
+        const radius = (i * visualWavelength + time * 5) % maxRadius
+        if (radius > 0.5) {
+          const points: [number, number, number][] = []
+          for (let j = 0; j <= 32; j++) {
+            const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
+            const x = entryPoint[0] + radius * Math.cos(angle)
+            const y = entryPoint[1] + radius * Math.sin(angle)
+            if (x <= filmStartX) {
+              points.push([x, y, 0])
+            }
+          }
+          if (points.length > 0) {
+            fronts.push(points)
           }
         }
-        if (points.length > 0) {
-          fronts.push(points)
-        }
       }
-    }
 
-    // Reflected wavefronts from bottom surface
-    for (let i = 0; i < numWavefronts; i++) {
-      const radius = (i * visualWavelength + time * 5 + opticalPathLength) % maxRadius
-      if (radius > 0.5) {
-        const points: [number, number, number][] = []
-        for (let j = 0; j <= 32; j++) {
-          const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
-          const x = exitPoint[0] + radius * Math.cos(angle)
-          const y = exitPoint[1] - radius * Math.sin(angle)
-          if (x <= filmStartX) {
-            points.push([x, y, 0])
+      // Reflected wavefronts from bottom surface
+      for (let i = 0; i < numWavefronts; i++) {
+        const radius = (i * visualWavelength + time * 5 + opticalPathLength) % maxRadius
+        if (radius > 0.5) {
+          const points: [number, number, number][] = []
+          for (let j = 0; j <= 32; j++) {
+            const angle = (j / 32) * Math.PI - Math.PI / 2 - incidentAngleRad
+            const x = exitPoint[0] + radius * Math.cos(angle)
+            const y = exitPoint[1] - radius * Math.sin(angle)
+            if (x <= filmStartX) {
+              points.push([x, y, 0])
+            }
+          }
+          if (points.length > 0) {
+            fronts.push(points)
           }
         }
-        if (points.length > 0) {
-          fronts.push(points)
-        }
       }
-    }
 
-    return fronts
-  }, [showWavefronts, visualWavelength, time, sourcePosition, filmThickness])
+      return fronts
+    },
+    [showWavefronts, visualWavelength, time, sourcePosition, filmThickness]
+  )
 
   return (
     <group position={[0, 0, 0]}>
@@ -855,13 +859,13 @@ function ThinFilm({
       {showRays && (
         <group>
           {/* Incident ray */}
-          <Line points={[[sourcePosition, 0, 0], entryPoint]} color={lightColor} lineWidth={2} opacity={0.7} />
+          <Line points={[[sourcePosition, 0, 0] as [number, number, number], entryPoint as [number, number, number]]} color={lightColor} lineWidth={2} opacity={0.7} />
 
           {/* Reflected ray from top surface */}
           <Line
             points={[
-              entryPoint,
-              [entryPoint[0] - 5 * Math.cos(incidentAngleRad), entryPoint[1] + 5 * Math.sin(incidentAngleRad), 0],
+              entryPoint as [number, number, number],
+              [entryPoint[0] - 5 * Math.cos(incidentAngleRad), entryPoint[1] + 5 * Math.sin(incidentAngleRad), 0] as [number, number, number],
             ]}
             color={lightColor}
             lineWidth={2}
@@ -869,11 +873,11 @@ function ThinFilm({
           />
 
           {/* Refracted ray in film */}
-          <Line points={[entryPoint, exitPoint]} color={lightColor} lineWidth={2} opacity={0.7} />
+          <Line points={[entryPoint as [number, number, number], exitPoint as [number, number, number]]} color={lightColor} lineWidth={2} opacity={0.7} />
 
           {/* Reflected ray from bottom surface */}
           <Line
-            points={[exitPoint, [exitPoint[0] - 2 * filmThicknessVisual * Math.tan(refractedAngleRad), 0, 0]]}
+            points={[exitPoint as [number, number, number], [exitPoint[0] - 2 * filmThicknessVisual * Math.tan(refractedAngleRad), 0, 0] as [number, number, number]]}
             color={lightColor}
             lineWidth={2}
             opacity={0.7}

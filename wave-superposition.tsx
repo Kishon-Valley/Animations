@@ -305,6 +305,21 @@ function SuperpositionScene({
   paused,
   demoMode,
   showColoredContributions,
+}: {
+  amplitude1: number;
+  amplitude2: number;
+  frequency1: number;
+  frequency2: number;
+  wavelength1: number;
+  wavelength2: number;
+  phaseShift: number;
+  showComponents: boolean;
+  showResultant: boolean;
+  showParticles: boolean;
+  stringThickness: number;
+  paused: boolean;
+  demoMode: string;
+  showColoredContributions: boolean;
 }) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
@@ -331,29 +346,29 @@ function SuperpositionScene({
   const k2 = (2 * Math.PI) / wavelength2
 
   // Generate points for wave 1
-  const wave1Points = []
+  const wave1Points: [number, number, number][] = []
   for (let i = 0; i <= numPoints; i++) {
     const x = -waveLength / 2 + (i / numPoints) * waveLength
     const y = amplitude1 * Math.sin(k1 * x - omega1 * time)
-    wave1Points.push([x, y, 0])
+    wave1Points.push([x, y, 0] as [number, number, number])
   }
 
   // Generate points for wave 2
-  const wave2Points = []
+  const wave2Points: [number, number, number][] = []
   for (let i = 0; i <= numPoints; i++) {
     const x = -waveLength / 2 + (i / numPoints) * waveLength
     const y = amplitude2 * Math.sin(k2 * x - omega2 * time + phaseShift)
-    wave2Points.push([x, y, 0])
+    wave2Points.push([x, y, 0] as [number, number, number])
   }
 
   // Generate points for resultant wave (superposition)
-  const resultantPoints = []
+  const resultantPoints: [number, number, number][] = []
   for (let i = 0; i <= numPoints; i++) {
     const x = -waveLength / 2 + (i / numPoints) * waveLength
     const y1 = amplitude1 * Math.sin(k1 * x - omega1 * time)
     const y2 = amplitude2 * Math.sin(k2 * x - omega2 * time + phaseShift)
     const y = y1 + y2 // Superposition principle: waves add
-    resultantPoints.push([x, y, 0])
+    resultantPoints.push([x, y, 0] as [number, number, number])
   }
 
   // Generate particles for the resultant wave
@@ -367,9 +382,9 @@ function SuperpositionScene({
   }
 
   // Add fixed endpoints for the strings
-  const fixedWave1Points = [[-waveLength / 2, 0, 0], ...wave1Points, [waveLength / 2, 0, 0]]
-  const fixedWave2Points = [[-waveLength / 2, 0, 0], ...wave2Points, [waveLength / 2, 0, 0]]
-  const fixedResultantPoints = [[-waveLength / 2, 0, 0], ...resultantPoints, [waveLength / 2, 0, 0]]
+  const fixedWave1Points: [number, number, number][] = [[-waveLength / 2, 0, 0], ...wave1Points, [waveLength / 2, 0, 0]]
+  const fixedWave2Points: [number, number, number][] = [[-waveLength / 2, 0, 0], ...wave2Points, [waveLength / 2, 0, 0]]
+  const fixedResultantPoints: [number, number, number][] = [[-waveLength / 2, 0, 0], ...resultantPoints, [waveLength / 2, 0, 0]]
 
   // Determine the vertical offset for each wave display
   const wave1Offset = showComponents && showResultant ? 3 : 0
@@ -588,7 +603,17 @@ function SuperpositionScene({
   )
 }
 
-function StringMesh({ points, thickness, color, segments = 64 }) {
+function StringMesh({ 
+  points, 
+  thickness, 
+  color, 
+  segments = 64 
+}: { 
+  points: [number, number, number][]; 
+  thickness: number; 
+  color: string; 
+  segments?: number; 
+}) {
   // Create a smooth curve from the points
   const curve = useMemo(() => {
     const curvePoints = points.map((point) => new Vector3(point[0], point[1], point[2]))

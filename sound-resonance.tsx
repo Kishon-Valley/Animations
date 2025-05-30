@@ -162,12 +162,20 @@ function ResonanceScene({
   resonanceMode,
   paused,
   showAmplitudeGraph,
+}: {
+  drivingFrequency: number;
+  resonantFrequency: number;
+  amplitude: number;
+  damping: number;
+  resonanceMode: string;
+  paused: boolean;
+  showAmplitudeGraph: boolean;
 }) {
   const timeRef = useRef(0)
   const [time, setTime] = useState(0)
   const [responseAmplitude, setResponseAmplitude] = useState(0)
-  const [amplitudeHistory, setAmplitudeHistory] = useState([])
-  const [frequencySweepData, setFrequencySweepData] = useState([])
+  const [amplitudeHistory, setAmplitudeHistory] = useState<Array<{ time: number; amplitude: number }>>([])
+  const [frequencySweepData, setFrequencySweepData] = useState<Array<{ frequency: number; response: number }>>([])
 
   // Update time and calculate response
   useFrame((state, delta) => {
@@ -266,6 +274,15 @@ function TubeResonance({
   amplitudeHistory,
   frequencySweepData,
   showAmplitudeGraph,
+}: {
+  drivingFrequency: number;
+  resonantFrequency: number;
+  amplitude: number;
+  responseAmplitude: number;
+  time: number;
+  amplitudeHistory: Array<{ time: number; amplitude: number }>;
+  frequencySweepData: Array<{ frequency: number; response: number }>;
+  showAmplitudeGraph: boolean;
 }) {
   const tubeLength = 10
   const tubeRadius = 1
@@ -275,7 +292,7 @@ function TubeResonance({
   const wavelength = (2 * tubeLength) / Math.round(resonantFrequency * 2)
 
   // Generate points for the standing wave in the tube
-  const wavePoints = []
+  const wavePoints: [number, number, number][] = []
   for (let i = 0; i <= numPoints; i++) {
     const x = -tubeLength / 2 + (i / numPoints) * tubeLength
 
@@ -288,7 +305,7 @@ function TubeResonance({
     const positionFactor = Math.sin(k * (x + tubeLength / 2))
     const y = responseAmplitude * positionFactor
 
-    wavePoints.push([x, y, 0])
+    wavePoints.push([x, y, 0] as [number, number, number])
   }
 
   return (
@@ -388,7 +405,10 @@ function TubeResonance({
         points={wavePoints}
         color="#00FFFF"
         lineWidth={3}
-        vertexColors={wavePoints.map((_, i) => `hsl(${180 + (i / numPoints) * 40}, 100%, 70%)`)}
+        vertexColors={wavePoints.map((_, i) => {
+          const hue = 180 + (i / numPoints) * 40;
+          return [hue/360, 1, 0.7] as [number, number, number];
+        })}
       />
 
       {/* Amplitude graph */}
@@ -421,6 +441,15 @@ function StringResonance({
   amplitudeHistory,
   frequencySweepData,
   showAmplitudeGraph,
+}: {
+  drivingFrequency: number;
+  resonantFrequency: number;
+  amplitude: number;
+  responseAmplitude: number;
+  time: number;
+  amplitudeHistory: Array<{ time: number; amplitude: number }>;
+  frequencySweepData: Array<{ frequency: number; response: number }>;
+  showAmplitudeGraph: boolean;
 }) {
   const stringLength = 10
   const numPoints = 100
@@ -540,7 +569,11 @@ function StringResonance({
         <mesh
           key={i}
           position={[0, -3, 0]}
-          scale={[1, 1, 1] * (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius}
+          scale={[
+            (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius,
+            (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius,
+            (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius
+          ]}
         >
           <torusGeometry args={[1, 0.02, 16, 32]} />
           <meshStandardMaterial
@@ -583,6 +616,15 @@ function CavityResonance({
   amplitudeHistory,
   frequencySweepData,
   showAmplitudeGraph,
+}: {
+  drivingFrequency: number;
+  resonantFrequency: number;
+  amplitude: number;
+  responseAmplitude: number;
+  time: number;
+  amplitudeHistory: Array<{ time: number; amplitude: number }>;
+  frequencySweepData: Array<{ frequency: number; response: number }>;
+  showAmplitudeGraph: boolean;
 }) {
   const cavityWidth = 8
   const cavityHeight = 6
@@ -663,7 +705,11 @@ function CavityResonance({
           key={i}
           position={[-cavityWidth / 2 - 1.2, 0, 0]}
           rotation={[0, 0, Math.PI / 2]}
-          scale={[1, 1, 1] * (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius}
+          scale={[
+            (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius,
+            (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius,
+            (0.5 + Math.sin(time * Math.PI * drivingFrequency - i * 0.5) * 0.5 + 0.5) * radius
+          ]}
         >
           <torusGeometry args={[1, 0.05, 16, 32]} />
           <meshStandardMaterial
@@ -721,7 +767,17 @@ function CavityResonance({
   )
 }
 
-function AmplitudeGraph({ amplitudeHistory, frequencySweepData, drivingFrequency, resonantFrequency }) {
+function AmplitudeGraph({ 
+  amplitudeHistory, 
+  frequencySweepData, 
+  drivingFrequency, 
+  resonantFrequency 
+}: {
+  amplitudeHistory: Array<{ time: number; amplitude: number }>;
+  frequencySweepData: Array<{ frequency: number; response: number }>;
+  drivingFrequency: number;
+  resonantFrequency: number;
+}) {
   const graphWidth = 10
   const graphHeight = 4
   const graphX = 0
@@ -731,14 +787,14 @@ function AmplitudeGraph({ amplitudeHistory, frequencySweepData, drivingFrequency
   const historyPoints = amplitudeHistory.map((data, i) => {
     const x = graphX - graphWidth / 2 + (i / Math.max(1, amplitudeHistory.length - 1)) * graphWidth
     const y = graphY + data.amplitude * 2
-    return [x, y, 0]
+    return [x, y, 0] as [number, number, number]
   })
 
   // Generate points for frequency response curve
   const responsePoints = frequencySweepData.map((data) => {
     const x = graphX - graphWidth / 2 + ((data.frequency - 0.5) / 1) * graphWidth
     const y = graphY - graphHeight - 1 + data.response * 2
-    return [x, y, 0]
+    return [x, y, 0] as [number, number, number]
   })
 
   // Current frequency marker
@@ -815,7 +871,17 @@ function AmplitudeGraph({ amplitudeHistory, frequencySweepData, drivingFrequency
   )
 }
 
-function ResonanceExplanation({ drivingFrequency, resonantFrequency, mode, wavelength }) {
+function ResonanceExplanation({ 
+  drivingFrequency, 
+  resonantFrequency, 
+  mode, 
+  wavelength 
+}: {
+  drivingFrequency: number;
+  resonantFrequency: number;
+  mode: string;
+  wavelength: number;
+}) {
   // Calculate how close we are to resonance
   const frequencyRatio = drivingFrequency / resonantFrequency
   const isResonating = Math.abs(frequencyRatio - 1) < 0.05
