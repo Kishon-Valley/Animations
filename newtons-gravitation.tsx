@@ -124,7 +124,17 @@ export default function NewtonsGravitation() {
   )
 }
 
-function GravitationScene({ mass1, mass2, distance, showForceVectors, showFieldLines, paused, orbitDemo }) {
+interface GravitationSceneProps {
+  mass1: number;
+  mass2: number;
+  distance: number;
+  showForceVectors: boolean;
+  showFieldLines: boolean;
+  paused: boolean;
+  orbitDemo: boolean;
+}
+
+function GravitationScene({ mass1, mass2, distance, showForceVectors, showFieldLines, paused, orbitDemo }: GravitationSceneProps) {
   const timeRef = useRef(0)
   const [orbitAngle, setOrbitAngle] = useState(0)
   const [orbitDistance, setOrbitDistance] = useState(distance)
@@ -132,7 +142,7 @@ function GravitationScene({ mass1, mass2, distance, showForceVectors, showFieldL
   // Calculate gravitational force
   // F = G * (m1 * m2) / r^2
   // Using G = 1 for simplicity
-  const calculateForce = (m1, m2, r) => {
+  const calculateForce = (m1: number, m2: number, r: number): number => {
     return (m1 * m2) / (r * r)
   }
 
@@ -247,7 +257,14 @@ function CoordinateSystem() {
   )
 }
 
-function Mass({ position, mass, color, label }) {
+interface MassProps {
+  position: { x: number; y: number; z: number };
+  mass: number;
+  color: string;
+  label: string;
+}
+
+function Mass({ position, mass, color, label }: MassProps) {
   // Scale radius based on mass
   const radius = 0.3 + mass * 0.1
 
@@ -267,7 +284,13 @@ function Mass({ position, mass, color, label }) {
   )
 }
 
-function ForceVectors({ position1, position2, force }) {
+interface ForceVectorsProps {
+  position1: Vector3;
+  position2: Vector3;
+  force: number;
+}
+
+function ForceVectors({ position1, position2, force }: ForceVectorsProps) {
   // Calculate direction vectors
   const dir1to2 = new Vector3().subVectors(position2, position1).normalize()
   const dir2to1 = new Vector3().subVectors(position1, position2).normalize()
@@ -305,7 +328,14 @@ function ForceVectors({ position1, position2, force }) {
   )
 }
 
-function FieldLines({ position1, position2, mass1, mass2 }) {
+interface FieldLinesProps {
+  position1: Vector3;
+  position2: Vector3;
+  mass1: number;
+  mass2: number;
+}
+
+function FieldLines({ position1, position2, mass1, mass2 }: FieldLinesProps) {
   const numLines = 16
   const lineLength = 1.5
   const fieldPoints1 = []
@@ -319,15 +349,17 @@ function FieldLines({ position1, position2, mass1, mass2 }) {
 
     // Start point (on the sphere)
     const radius1 = 0.3 + mass1 * 0.1
-    const start1 = [position1.x + x * radius1, position1.y, position1.z + z * radius1]
+    // Create points as [x, y, z] tuples which are compatible with Line component
+    const start1 = [position1.x + x * radius1, position1.y, position1.z + z * radius1] as [number, number, number]
 
     // End point (extending outward)
     const end1 = [
       position1.x + x * (radius1 + (lineLength * mass1) / 5),
       position1.y,
       position1.z + z * (radius1 + (lineLength * mass1) / 5),
-    ]
+    ] as [number, number, number]
 
+    // Each line needs an array of points
     fieldPoints1.push([start1, end1])
   }
 
@@ -339,14 +371,14 @@ function FieldLines({ position1, position2, mass1, mass2 }) {
 
     // Start point (on the sphere)
     const radius2 = 0.3 + mass2 * 0.1
-    const start2 = [position2.x + x * radius2, position2.y, position2.z + z * radius2]
+    const start2 = [position2.x + x * radius2, position2.y, position2.z + z * radius2] as [number, number, number]
 
     // End point (extending outward)
     const end2 = [
       position2.x + x * (radius2 + (lineLength * mass2) / 5),
       position2.y,
       position2.z + z * (radius2 + (lineLength * mass2) / 5),
-    ]
+    ] as [number, number, number]
 
     fieldPoints2.push([start2, end2])
   }
@@ -366,7 +398,14 @@ function FieldLines({ position1, position2, mass1, mass2 }) {
   )
 }
 
-function Formula({ mass1, mass2, distance, force }) {
+interface FormulaProps {
+  mass1: number;
+  mass2: number;
+  distance: number;
+  force: number;
+}
+
+function Formula({ mass1, mass2, distance, force }: FormulaProps) {
   return (
     <group position={[0, -5, 0]}>
       <Text position={[0, 0, 0]} fontSize={0.5} color="white">
@@ -389,7 +428,14 @@ function Formula({ mass1, mass2, distance, force }) {
 }
 
 // Helper component for arrows
-function ArrowHelper({ dir, origin, length, color }) {
+interface ArrowHelperProps {
+  dir: Vector3;
+  origin: Vector3;
+  length: number;
+  color: string;
+}
+
+function ArrowHelper({ dir, origin, length, color }: ArrowHelperProps) {
   const normalizedDir = new Vector3().copy(dir).normalize()
   const end = new Vector3().copy(origin).add(normalizedDir.multiplyScalar(length))
 

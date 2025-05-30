@@ -1,6 +1,52 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
+import { Canvas, useFrame } from "@react-three/fiber"
+import { PerspectiveCamera, OrbitControls, Text, Line } from "@react-three/drei"
+
+// Type definitions
+type DampingType = "underdamped" | "critically" | "overdamped"
+
+interface DampedOscillationSceneProps {
+  amplitude: number
+  frequency: number
+  dampingRatio: number
+  dampingType: DampingType
+  paused: boolean
+}
+
+interface PositionPoint {
+  time: number
+  position: number
+}
+
+interface EnvelopePoint {
+  time: number
+  value: number
+}
+
+interface SpringMassDamperSystemProps {
+  position: number
+  dampingRatio: number
+}
+
+interface PositionTimeGraphProps {
+  positions: PositionPoint[]
+  envelopePoints: EnvelopePoint[]
+  negEnvelopePoints: EnvelopePoint[]
+  amplitude: number
+  dampingType: DampingType
+}
+
+interface LabelsProps {
+  dampingType: DampingType
+}
+
+interface EquationsProps {
+  dampingRatio: number
+  omega0: number
+  omegaD: number
+}
 
 export default function DampedOscillations() {
   const [amplitude, setAmplitude] = useState(3)
