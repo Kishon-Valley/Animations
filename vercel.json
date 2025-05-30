@@ -4,17 +4,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "env": {
-    "NODE_VERSION": "18.x"
-  },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "build": {
-    "env": {
-      "NEXT_TELEMETRY_DISABLED": "1"
-    }
+    "NODE_VERSION": "18.x",
+    "NEXT_TELEMETRY_DISABLED": "1"
   }
 }
