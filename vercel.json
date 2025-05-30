@@ -1,10 +1,9 @@
 {
   "framework": "nextjs",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm run build",
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "env": {
-    "NODE_VERSION": "18.x",
-    "PNPM_FLAGS": "--shamefully-hoist --strict-peer-dependencies=false"
+    "NODE_VERSION": "18.x"
   }
 }
