@@ -34,10 +34,25 @@ const nextConfig = {
       use: ['raw-loader', 'glslify-loader'],
     });
 
+    // Explicitly include node_modules for Three.js packages
+    config.module.rules.push({
+      test: /\.(js|mjs|jsx|ts|tsx)$/,
+      include: [
+        /node_modules\/three/,
+        /node_modules\/@react-three\/fiber/,
+        /node_modules\/@react-three\/drei/
+      ],
+      use: 'next-babel-loader'
+    });
+
     return config;
   },
   // Ensure proper transpilation of Three.js
   transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
+  // Experimental features to help with Three.js
+  experimental: {
+    esmExternals: 'loose'
+  }
 }
 
 export default nextConfig;
