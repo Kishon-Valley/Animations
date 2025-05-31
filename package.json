@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "rm -rf node_modules/.cache && npm install three@latest @react-three/fiber@latest @react-three/drei@latest --legacy-peer-deps",
+    "prebuild": "rm -rf node_modules/.cache && npm install three@latest @react-three/fiber@latest @react-three/drei@latest @babel/plugin-proposal-class-properties @babel/plugin-proposal-private-methods @babel/plugin-proposal-private-property-in-object --legacy-peer-deps",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
