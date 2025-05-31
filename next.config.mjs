@@ -52,15 +52,6 @@ const nextConfig = {
   // Experimental features to help with Three.js
   experimental: {
     esmExternals: 'loose'
-  },
-  // Babel configuration
-  babel: {
-    presets: ['next/babel'],
-    plugins: [
-      '@babel/plugin-proposal-class-properties',
-      '@babel/plugin-proposal-private-methods',
-      '@babel/plugin-proposal-private-property-in-object'
-    ]
   }
 }
 
